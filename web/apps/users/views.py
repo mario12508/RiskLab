@@ -16,32 +16,31 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, TemplateView, UpdateView
 
 
-class RegisterView(CreateView):
-    form_class = CustomUserCreationForm
-    template_name = "users/register.html"
-    success_url = reverse_lazy("homepage:home")
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        user = form.save()
-        login(self.request, user)
-        return response
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect("homepage:home")
-
-        return super().dispatch(request, *args, **kwargs)
-
-
 class UserLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = "users/login.html"
     redirect_authenticated_user = True
 
-    def form_invalid(self, form):
-        messages.error(self.request, "Неверное имя пользователя или пароль")
-        return super().form_invalid(form)
+    def post(self, request, *args, **kwargs):
+        auth_type = request.POST.get('auth_type')
+
+        if auth_type == 'register':
+            register_form = CustomUserCreationForm(request.POST)
+            if register_form.is_valid():
+                user = register_form.save()
+                login(request, user)
+                return redirect(self.get_success_url())
+            else:
+                return self.render_to_response(
+                    self.get_context_data(register_form=register_form))
+
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'register_form' not in context:
+            context['register_form'] = CustomUserCreationForm()
+        return context
 
     def get_success_url(self):
         return reverse_lazy("homepage:home")
@@ -63,6 +62,21 @@ class ProfileEditView(UpdateView):
 
     def get_object(self, queryset=None):
         return self.request.user
+
+    def post(self, request, *args, **kwargs):
+        if 'delete_avatar' in request.POST:
+            user = self.get_object()
+            if user.image:
+                user.image.delete(save=False)
+                user.image = None
+                user.save()
+                messages.success(request, "Аватар удалён")
+            else:
+                messages.warning(request, "Аватар не был установлен")
+            return redirect(self.get_success_url())
+
+        # Обычная обработка формы
+        return super().post(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy("users:profile")

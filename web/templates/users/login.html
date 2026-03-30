@@ -1,51 +1,146 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Вход{% endblock %}
+{% block title %}Вход / Регистрация{% endblock %}
+
+{% block css %}
+<style>
+  .auth-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .auth-card:hover {
+    transform: translateY(-2px);
+  }
+  .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+    border-color: var(--bs-primary);
+  }
+  .btn-toggle {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-toggle.active {
+    background-color: var(--bs-primary);
+    color: white;
+    box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
+  }
+  .auth-form {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .auth-form.hidden {
+    display: none;
+  }
+  .alert-error {
+    animation: fadeSlideDown 0.3s ease-out;
+  }
+  @keyframes fadeSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .input-group-text {
+    background: transparent;
+    border-right: none;
+  }
+  .input-group .form-control {
+    border-left: none;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container my-2">
+<div class="container py-4 py-md-5">
   <div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-      <div class="card border-0 shadow-sm">
-        <div class="row g-0">
-          <div class="col-md-6">
-            <div class="card-body p-4 p-lg-5">
-              <h1 class="h3 mb-4 text-center">Войти в аккаунт</h1>
-
-              <form method="post" action="{% url 'users:login' %}">
-                {% csrf_token %}
-
-                {% for field in form %}
-                <div class="mb-2">
+    <div class="col-md-8 col-lg-6 col-xl-5">
+      <div class="card border-0 shadow-lg auth-card rounded-4 overflow-hidden">
+        <div class="card-body p-4 p-sm-5">
+          <div class="d-flex gap-2 mb-4">
+            <button type="button" id="btn-login" class="btn btn-toggle flex-fill py-2 rounded-pill active fw-semibold">Вход</button>
+            <button type="button" id="btn-register" class="btn btn-toggle flex-fill py-2 rounded-pill fw-semibold">Регистрация</button>
+          </div>
+          <div id="form-login" class="auth-form">
+            <form method="post" action="{% url 'users:login' %}">
+              {% csrf_token %}
+              <input type="hidden" name="auth_type" value="login">
+              <div class="mb-3">
+                <label class="form-label small text-secondary">Логин</label>
+                <input type="text" name="username" class="form-control rounded-3" placeholder="Введите логин" required>
+                {% if form.username.errors %}
+                  <div class="text-danger small mt-1">{{ form.username.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-4">
+                <label class="form-label small text-secondary">Пароль</label>
+                <input type="password" name="password" class="form-control rounded-3" placeholder="Введите пароль" required>
+                {% if form.password.errors %}
+                  <div class="text-danger small mt-1">{{ form.password.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger alert-error py-2 small rounded-3">{{ form.non_field_errors|join:", " }}</div>
+              {% endif %}
+              <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold">Войти</button>
+            </form>
+          </div>
+          <div id="form-register" class="auth-form hidden">
+            <form method="post" action="{% url 'users:login' %}">
+              {% csrf_token %}
+              <input type="hidden" name="auth_type" value="register">
+              {% for field in register_form %}
+                <div class="mb-3">
+                  <label class="form-label small text-secondary">{{ field.label }}</label>
                   {{ field }}
                   {% if field.errors %}
-                  <div class="text-danger small mt-1">
-                    {{ field.errors|join:", " }}
-                  </div>
+                    <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
                   {% endif %}
                 </div>
-                {% endfor %}
-
-                <button type="submit" class="btn btn-primary w-100 mt-2">
-                  Войти
-                </button>
-              </form>
-            </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold">Создать аккаунт</button>
+            </form>
           </div>
-
-          <div class="col-md-6 bg-primary text-white">
-            <div class="card-body p-4 p-lg-5 text-center">
-              <h2 class="h3 mb-3">С возвращением!</h2>
-              <p class="mb-4">Войдите в свой аккаунт, чтобы продолжить</p>
-              <a href="{% url 'users:register' %}" class="btn btn-outline-light">
-                Регистрация
-              </a>
-            </div>
+          <div class="text-center mt-4">
+            <a href="#" class="text-decoration-none small">Забыли пароль?</a>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+  (function() {
+    const btnLogin = document.getElementById('btn-login');
+    const btnRegister = document.getElementById('btn-register');
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
+
+    function showLogin() {
+      btnLogin.classList.add('active');
+      btnRegister.classList.remove('active');
+      formLogin.classList.remove('hidden');
+      formRegister.classList.add('hidden');
+    }
+
+    function showRegister() {
+      btnRegister.classList.add('active');
+      btnLogin.classList.remove('active');
+      formRegister.classList.remove('hidden');
+      formLogin.classList.add('hidden');
+    }
+
+    btnLogin.addEventListener('click', showLogin);
+    btnRegister.addEventListener('click', showRegister);
+
+    const registerHasErrors = {{ register_form.errors|length }} > 0;
+    if (registerHasErrors) {
+      showRegister();
+    }
+  })();
+</script>
 {% endblock %}

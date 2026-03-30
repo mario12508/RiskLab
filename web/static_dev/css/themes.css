@@ -1,0 +1,50 @@
+:root {
+  --bg-body: #f8f9fa;
+  --bg-surface: white;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --card-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+[data-bs-theme="dark"] {
+  --bg-body: #212529;
+  --bg-surface: #2b2f33;
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --border-color: #495057;
+  --card-shadow: 0 0.125rem 0.25rem rgba(255,255,255,0.05);
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.2s ease;
+}
+
+header, footer, .card, .dropdown-menu, .modal-content {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dropdown-menu {
+  background-color: var(--bg-surface);
+}
+
+.text-body-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.border-bottom, .border-top {
+  border-color: var(--border-color) !important;
+}
+
+.btn-outline-primary {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--border-color);
+  color: var(--text-primary);
+}

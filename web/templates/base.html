@@ -7,7 +7,15 @@
   <title>{% block title %}Мой сайт{% endblock %}</title>
 
   <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'bootstrap/css/bootstrap-icons.css' %}" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}">
+  <link rel="stylesheet" href="{% static 'css/animate.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
 
+  <link rel="stylesheet" href="{% static 'css/themes.css' %}">
+  <script src="{% static 'js/themes.js' %}"></script>
+
+  <link rel="icon" type="image" href="{% static 'img/favicon.svg' %}"/>
   {% block css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -15,7 +23,7 @@
 
   {% include "includes/messages.html" %}
 
-  <main class="container py-4 flex-grow-1">
+  <main class="page-wrapper p-3">
     {% block content %}
     {% endblock %}
   </main>

@@ -3,34 +3,109 @@
 
 {% block title %}Редактирование профиля{% endblock %}
 
-{% block content %}
-<div class="container my-2">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white py-3">
-          <h3 class="mb-0 h4">Редактирование профиля</h3>
-        </div>
-        <div class="card-body p-4">
-          <form method="post">
-            {% csrf_token %}
+{% block css %}
+<style>
+  .avatar-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+  .avatar-preview:hover {
+    opacity: 0.85;
+  }
+  .form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+    border-color: var(--bs-primary);
+  }
+  .file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+  .file-input-wrapper input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  .btn-file {
+    transition: all 0.2s;
+  }
+  .btn-file:hover {
+    transform: translateY(-1px);
+  }
+  .field-error {
+    animation: fadeSlideDown 0.25s ease-out;
+  }
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
 
-            {% for field in form %}
-            <div class="mb-3">
-              {{ field }}
-              {% if field.errors %}
-              <div class="text-danger small mt-1">
-                {{ field.errors|join:", " }}
+{% block content %}
+<div class="container py-4 py-md-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-transparent py-3 border-0">
+          <h3 class="h4 mb-0 fw-semibold">Редактирование профиля</h3>
+        </div>
+        <div class="card-body p-4 p-sm-5">
+          <form method="post" enctype="multipart/form-data" id="profileForm">
+            {% csrf_token %}
+            <div class="text-center mb-4">
+              <div id="avatarPreviewWrapper">
+                {% if user.image %}
+                  <img id="avatarPreview" src="{{ user.image.url }}" alt="Аватар" class="avatar-preview mb-2">
+                {% else %}
+                  <div id="avatarPreview" class="avatar-preview rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2"
+                       style='background-color: hsl({{ user.username|make_list|slice:":3"|join:""|add:"0"|slice:":3" }}, 70%, 55%);'>
+                    <span class="text-white fw-semibold" style="font-size: 2.5rem;">
+                      {{ user.username.0|upper }}{{ user.username.1|upper|default:"" }}
+                    </span>
+                  </div>
+                {% endif %}
               </div>
-              {% endif %}
+
+              <div class="d-flex gap-2 justify-content-center">
+                <div class="file-input-wrapper">
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-file rounded-pill px-3">
+                    <i class="bi bi-camera"></i> Загрузить фото
+                  </button>
+                  <input type="file" name="image" id="id_image" accept="image/*">
+                </div>
+                <button type="submit" name="delete_avatar" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                  <i class="bi bi-trash"></i> Удалить
+                </button>
+              </div>
+              <div class="small text-secondary mt-1">Максимум 5 МБ, JPG/PNG</div>
             </div>
+            {% for field in form %}
+              {% if field.name != 'image' %}
+                <div class="mb-3">
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger small mt-1 field-error">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
             {% endfor %}
 
             <div class="d-flex gap-2 mt-4">
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-primary rounded-pill px-4">
                 Сохранить изменения
               </button>
-              <a href="{% url 'users:profile' %}" class="btn btn-secondary">
+              <a href="{% url 'users:profile' %}" class="btn btn-secondary rounded-pill px-4">
                 Отмена
               </a>
             </div>
@@ -40,4 +115,71 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+  (function() {
+    const avatarInput = document.getElementById('id_image');
+    const form = document.getElementById('profileForm');
+    const wrapper = document.getElementById('avatarPreviewWrapper');
+
+    function updatePreview(src, isImage) {
+      const currentPreview = document.getElementById('avatarPreview');
+      let newPreview;
+
+      if (isImage) {
+        newPreview = document.createElement('img');
+        newPreview.id = 'avatarPreview';
+        newPreview.src = src;
+        newPreview.alt = 'Аватар';
+        newPreview.className = 'avatar-preview mb-2';
+      } else {
+        const username = '{{ user.username|escapejs }}';
+        const hue = (username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % 360;
+
+        newPreview = document.createElement('div');
+        newPreview.id = 'avatarPreview';
+        newPreview.className = 'avatar-preview rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2';
+        newPreview.style.backgroundColor = `hsl(${hue}, 70%, 55%)`;
+        newPreview.innerHTML = `<span class="text-white fw-semibold" style="font-size: 2.5rem;">
+            ${username[0].toUpperCase()}${username[1] ? username[1].toUpperCase() : ''}
+          </span>`;
+      }
+
+      if (currentPreview) {
+        currentPreview.parentNode.replaceChild(newPreview, currentPreview);
+      } else {
+        wrapper.appendChild(newPreview);
+      }
+    }
+
+    avatarInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+
+      if (file) {
+        if (file.type.startsWith('image/')) {
+          const objectUrl = URL.createObjectURL(file);
+          updatePreview(objectUrl, true);
+
+          newPreview.onload = () => URL.revokeObjectURL(objectUrl);
+        } else {
+          alert('Пожалуйста, выберите изображение (JPG, PNG)');
+          this.value = '';
+        }
+      }
+    });
+    form.addEventListener('submit', function(e) {
+      const submitter = e.submitter;
+
+      if (submitter && submitter.name === 'delete_avatar') {
+        if (!confirm('Вы уверены, что хотите удалить аватар?')) {
+          e.preventDefault();
+        } else {
+          avatarInput.value = '';
+        }
+      }
+    });
+  })();
+</script>
 {% endblock %}

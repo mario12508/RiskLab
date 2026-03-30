@@ -9,35 +9,39 @@ User = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
+        label="Email",
         required=True,
         widget=forms.EmailInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Email",
+                "placeholder": "Введите Email",
             },
         ),
     )
     username = forms.CharField(
+        label="Имя пользователя",
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Имя пользователя",
+                "placeholder": "Придумайте логин",
             },
         ),
     )
     password1 = forms.CharField(
+        label="Пароль",
         widget=forms.PasswordInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Пароль",
+                "placeholder": "Введите пароль",
             },
         ),
     )
     password2 = forms.CharField(
+        label="Подтверждение пароля",
         widget=forms.PasswordInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Подтверждение пароля",
+                "placeholder": "Повторите пароль",
             },
         ),
     )
@@ -119,6 +123,11 @@ class UserProfileForm(forms.ModelForm):
             },
         ),
     )
+    image = forms.ImageField(
+        label="Сменить аватар",
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+    )
 
     class Meta:
         model = User
@@ -127,6 +136,7 @@ class UserProfileForm(forms.ModelForm):
             "first_name",
             "last_name",
             "email",
+            "image",
         )
 
     def __init__(self, *args, **kwargs):

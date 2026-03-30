@@ -1,5 +1,34 @@
-<footer class="bg-dark text-white py-2 mt-auto">
-  <div class="container text-center">
-    <p class="mb-0">&copy; {% now "Y" %} IT Лицеисты</p>
+<footer class="py-4 mt-auto border-top bg-body-tertiary">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center">
+    <div class="col-md-4 d-flex align-items-center mb-3 mb-md-0">
+      <span class="text-body-secondary fw-medium">
+        &copy; {% now "Y" %} IT Лицеисты
+      </span>
+    </div>
+    <ul class="nav col-md-4 justify-content-center justify-content-md-end list-unstyled d-flex gap-3">
+      <li>
+        <a class="text-body-secondary footer-link" href="https://t.me/kfu_luceum" title="Telegram">
+          <i class="bi bi-telegram fs-5"></i>
+        </a>
+      </li>
+      <li>
+        <a class="text-body-secondary footer-link" href="https://github.com/Lyceum-KFU" title="GitHub">
+          <i class="bi bi-github fs-5"></i>
+        </a>
+      </li>
+    </ul>
+
   </div>
 </footer>
+
+<style>
+  .footer-link {
+      transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+      display: inline-block;
+  }
+
+  .footer-link:hover {
+      color: #0d6efd !important;
+      transform: translateY(-2px);
+  }
+</style>
