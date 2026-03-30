@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ошибка сервера{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <img src="{% static 'img/500.png' %}" alt="Ошибка сервера" class="img-fluid mb-4" style="max-height: 400px;">
+
+      <p class="mb-2">
+        В серверной сейчас кого-то оттарабанят, и все заработает
+      </p>
+      <p class="text-muted mb-4">
+        немного подождите ;)
+      </p>
+
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'homepage:main' %}" class="btn btn-primary">
+          <i class="bi bi-house me-2"></i>На главную
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
