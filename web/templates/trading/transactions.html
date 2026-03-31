@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}История сделок | ИнвестТренажер{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">История сделок</h1>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if transactions %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Акция</th>
+            <th>Тип</th>
+            <th>Количество</th>
+            <th>Цена</th>
+            <th>Сумма</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for transaction in transactions %}
+          <tr>
+            <td>{{ transaction.created_at|date:"d.m.Y H:i:s" }}</td>
+            <td>
+              <strong>{{ transaction.stock.name }}</strong><br>
+              <small class="text-muted">{{ transaction.stock.ticker }}</small>
+            </td>
+            <td>
+              {% if transaction.type == 'buy' %}
+              <span class="badge bg-success">Покупка</span>
+              {% else %}
+              <span class="badge bg-danger">Продажа</span>
+              {% endif %}
+            </td>
+            <td>{{ transaction.quantity }} шт.</td>
+            <td>{{ transaction.price|floatformat:2 }} ₽</td>
+            <td class="{% if transaction.type == 'buy' %}text-danger{% else %}text-success{% endif %}">
+              {% if transaction.type == 'buy' %}-{% else %}+{% endif %}{{ transaction.total|floatformat:2 }} ₽
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if is_paginated %}
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+              <i class="bi bi-chevron-left"></i> Назад
+            </a>
+          </li>
+          {% endif %}
+
+          <li class="page-item active">
+            <span class="page-link">
+              Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+            </span>
+          </li>
+
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+              Вперед <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-list-ul fs-1 text-muted"></i>
+        <p class="mt-3">У вас пока нет сделок</p>
+        <a href="{% url 'stocks:list' %}" class="btn btn-primary">Начать торговать</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url 'trading:portfolio' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Назад к портфелю
+    </a>
+  </div>
+</div>
+{% endblock %}

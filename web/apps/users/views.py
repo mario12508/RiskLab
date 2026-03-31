@@ -78,7 +78,6 @@ class ProfileEditView(UpdateView):
 
             return redirect(self.get_success_url())
 
-        # Обычная обработка формы
         return super().post(request, *args, **kwargs)
 
     def get_success_url(self):

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Мой портфель | ИнвестТренажер{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">Мой инвестиционный портфель</h1>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <h6 class="card-title text-white-50">Общая стоимость</h6>
+          <h2 class="card-title">{{ portfolio.total_value|floatformat:2 }} ₽</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h6 class="card-title text-white-50">Доступно средств</h6>
+          <h2 class="card-title">{{ portfolio.cash|floatformat:2 }} ₽</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card {% if total_profit >= 0 %}bg-success{% else %}bg-danger{% endif %} text-white">
+        <div class="card-body">
+          <h6 class="card-title text-white-50">Прибыль/Убыток</h6>
+          <h2 class="card-title">
+            {% if total_profit >= 0 %}+{% endif %}{{ total_profit|floatformat:2 }} ₽
+            <small class="fs-6">({{ profit_percent|floatformat:1 }}%)</small>
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">Мои активы</h5>
+    </div>
+    <div class="card-body">
+      {% if holdings %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+          <tr>
+            <th>Акция</th>
+            <th>Количество</th>
+            <th>Средняя цена</th>
+            <th>Текущая цена</th>
+            <th>Стоимость</th>
+            <th>Прибыль</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for holding in holdings %}
+          <tr>
+            <td>
+              <strong>{{ holding.stock.name }}</strong><br>
+              <small class="text-muted">{{ holding.stock.ticker }}</small>
+            </td>
+            <td>{{ holding.quantity }} шт.</td>
+            <td>{{ holding.average_price|floatformat:2 }} ₽</td>
+            <td>{{ holding.stock.last_price|floatformat:2 }} ₽</td>
+            <td>{{ holding.current_value|floatformat:2 }} ₽</td>
+            <td class="{% if holding.profit_loss >= 0 %}text-success{% else %}text-danger{% endif %}">
+              {% if holding.profit_loss >= 0 %}+{% endif %}{{ holding.profit_loss|floatformat:2 }} ₽
+              <br>
+              <small>({% if holding.profit_loss_percent >= 0 %}+{% endif %}{{ holding.profit_loss_percent|floatformat:1 }}%)</small>
+            </td>
+            <td>
+              <a href="{% url 'stocks:detail' holding.stock.ticker %}" class="btn btn-sm btn-outline-primary">
+                Торговать
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-briefcase fs-1 text-muted"></i>
+        <p class="mt-3">У вас пока нет акций в портфеле</p>
+        <a href="{% url 'stocks:list' %}" class="btn btn-primary">Перейти к покупке акций</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'stocks:list' %}" class="btn btn-outline-primary">
+      <i class="bi bi-building"></i> Все акции
+    </a>
+    <a href="{% url 'trading:transactions' %}" class="btn btn-outline-secondary ms-2">
+      <i class="bi bi-list-ul"></i> История сделок
+    </a>
+  </div>
+</div>
+{% endblock %}

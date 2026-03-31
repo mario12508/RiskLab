@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ stock.name }} ({{ stock.ticker }}){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-md-8">
+      <h1>{{ stock.name }} ({{ stock.ticker }})</h1>
+      <p><strong>Сектор:</strong> {{ stock.get_sector_display }}</p>
+      <p><strong>Описание:</strong> {{ stock.description }}</p>
+      <p><strong>Дивиденды:</strong> {{ stock.dividend_yield }}%</p>
+      <p><strong>Дивидендная история:</strong> {{ stock.dividend_history|default:"Нет данных" }}</p>
+      <p><strong>Волатильность:</strong> {{ stock.get_volatility_display }}</p>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5>Котировки</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Цена:</strong> {{ stock.last_price }} ₽</p>
+          <p><strong>Изменение:</strong>
+            <span class="{% if stock.change_percent > 0 %}text-success{% else %}text-danger{% endif %}">
+              {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
+            </span>
+          </p>
+          <p><strong>Максимум:</strong> {{ stock.high_price }} ₽</p>
+          <p><strong>Минимум:</strong> {{ stock.low_price }} ₽</p>
+          <p><strong>Объем:</strong> {{ stock.volume|floatformat:0 }}</p>
+        </div>
+      </div>
+
+      {% if user.is_authenticated %}
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Торговля</h5>
+        </div>
+        <div class="card-body">
+          {% if portfolio %}
+          <div class="alert alert-info py-2 mb-3">
+            <small>Доступно: {{ portfolio.cash|floatformat:2 }} ₽</small>
+          </div>
+          {% endif %}
+
+          <form method="post" action="{% url 'trading:buy' %}">
+            {% csrf_token %}
+            <input type="hidden" name="ticker" value="{{ stock.ticker }}">
+            <div class="mb-3">
+              <label class="form-label">Количество акций</label>
+              <input type="number" name="quantity" class="form-control" min="1" required id="buy-quantity">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Сумма покупки</label>
+              <input type="text" class="form-control bg-light" id="buy-total" readonly>
+            </div>
+            <button type="submit" class="btn btn-success w-100 mb-2">
+              <i class="bi bi-bag-check"></i> Купить
+            </button>
+          </form>
+
+          <hr>
+
+          <form method="post" action="{% url 'trading:sell' %}">
+            {% csrf_token %}
+            <input type="hidden" name="ticker" value="{{ stock.ticker }}">
+            <div class="mb-3">
+              <label class="form-label">Количество акций</label>
+              <input type="number" name="quantity" class="form-control" min="1" required id="sell-quantity">
+              {% if user_holding %}
+              <small class="text-muted">У вас: {{ user_holding.quantity }} шт.</small>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Сумма продажи</label>
+              <input type="text" class="form-control bg-light" id="sell-total" readonly>
+            </div>
+            <button type="submit" class="btn btn-danger w-100">
+              <i class="bi bi-bag-x"></i> Продать
+            </button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <div class="card bg-light">
+        <div class="card-body text-center">
+          <i class="bi bi-person-circle fs-1 text-muted"></i>
+          <p class="mt-2">Авторизуйтесь для торговли</p>
+          <a href="{% url 'users:login' %}" class="btn btn-primary">Войти</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  const price = {{ stock.last_price }};
+
+  const buyQuantity = document.getElementById('buy-quantity');
+  const buyTotal = document.getElementById('buy-total');
+
+  if (buyQuantity) {
+    buyQuantity.addEventListener('input', function() {
+      const total = price * this.value;
+      buyTotal.value = total.toFixed(2) + ' ₽';
+    });
+    buyQuantity.dispatchEvent(new Event('input'));
+  }
+
+  const sellQuantity = document.getElementById('sell-quantity');
+  const sellTotal = document.getElementById('sell-total');
+
+  if (sellQuantity) {
+    sellQuantity.addEventListener('input', function() {
+      const total = price * this.value;
+      sellTotal.value = total.toFixed(2) + ' ₽';
+    });
+    sellQuantity.dispatchEvent(new Event('input'));
+  }
+</script>
+{% endblock %}

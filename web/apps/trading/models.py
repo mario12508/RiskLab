@@ -47,6 +47,77 @@ class PersonalPortfolio(models.Model):
         self.total_value = self.calculate_total_value()
         self.save(update_fields=["total_value"])
 
+    def buy_stock(self, stock, quantity):
+        cost = stock.last_price * quantity
+
+        if self.cash < cost:
+            raise ValueError(
+                f"Недостаточно средств. Доступно: {self.cash:.2f} ₽",
+            )
+
+        holding, created = PersonalHolding.objects.get_or_create(
+            portfolio=self,
+            stock=stock,
+            defaults={"average_price": stock.last_price, "quantity": 0},
+        )
+
+        if not created and holding.quantity > 0:
+            total_cost = (holding.average_price * holding.quantity) + cost
+            new_quantity = holding.quantity + quantity
+            holding.average_price = total_cost / new_quantity
+
+        holding.quantity += quantity
+        holding.save()
+
+        self.cash -= cost
+        self.save()
+
+        PersonalTransaction.objects.create(
+            portfolio=self,
+            stock=stock,
+            type="buy",
+            quantity=quantity,
+            price=stock.last_price,
+            total=cost,
+        )
+
+        self.update_total_value()
+        return holding
+
+    def sell_stock(self, stock, quantity):
+        try:
+            holding = PersonalHolding.objects.get(portfolio=self, stock=stock)
+        except PersonalHolding.DoesNotExist:
+            raise ValueError("У вас нет таких акций")
+
+        if holding.quantity < quantity:
+            raise ValueError(
+                f"Недостаточно акций. У вас: {holding.quantity} шт.",
+            )
+
+        revenue = stock.last_price * quantity
+
+        holding.quantity -= quantity
+        if holding.quantity == 0:
+            holding.delete()
+        else:
+            holding.save()
+
+        self.cash += revenue
+        self.save()
+
+        PersonalTransaction.objects.create(
+            portfolio=self,
+            stock=stock,
+            type="sell",
+            quantity=quantity,
+            price=stock.last_price,
+            total=revenue,
+        )
+
+        self.update_total_value()
+        return True
+
 
 class PersonalHolding(models.Model):
     portfolio = models.ForeignKey(
