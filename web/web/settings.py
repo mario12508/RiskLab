@@ -21,7 +21,10 @@ DEBUG = load_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", default="*").split(",")
 
 INSTALLED_APPS = [
+    "apps.game.apps.GameConfig",
     "apps.users.apps.UsersConfig",
+    "apps.stocks.apps.StocksConfig",
+    "apps.trading.apps.TradingConfig",
     "apps.homepage.apps.HomepageConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -108,7 +111,5 @@ STATIC_ROOT = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

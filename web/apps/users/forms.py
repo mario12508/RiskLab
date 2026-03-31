@@ -126,7 +126,7 @@ class UserProfileForm(forms.ModelForm):
     image = forms.ImageField(
         label="Сменить аватар",
         required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        widget=forms.FileInput(attrs={"class": "form-control"}),
     )
 
     class Meta:
