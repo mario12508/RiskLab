@@ -210,3 +210,4 @@ class ScenarioImpact(models.Model):
         return (
             f"{self.scenario.name} - {self.stock.ticker}: {self.coefficient}"
         )
+
