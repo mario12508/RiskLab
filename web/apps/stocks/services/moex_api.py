@@ -2,11 +2,11 @@ __all__ = ()
 
 from decimal import Decimal
 
-from apps.stocks.models import Stock
-
-from django.utils import timezone
+from apps.stocks.models import Stock, StockHistory
 
 from cachetools import TTLCache
+
+from django.utils import timezone
 
 import requests
 
@@ -37,6 +37,7 @@ class MOEXService:
                 quotes[ticker] = cached_quote
             else:
                 tickers_cesh.append(ticker)
+
         if tickers_cesh:
             for ticker in tickers_cesh:
                 url = f"{cls.BASE_URL}/engines/stock/markets/shares/securities/{ticker}.json"
@@ -56,28 +57,29 @@ class MOEXService:
                                 for i, col in enumerate(columns):
                                     if i < len(row):
                                         result[col] = row[i]
+
                                 quote_data = {
                                     "LAST": cls.safe_decimal(
-                                        result.get("LAST", 0)
+                                        result.get("LAST", 0),
                                     ),
                                     "OPEN": cls.safe_decimal(
-                                        result.get("OPEN", 0)
+                                        result.get("OPEN", 0),
                                     ),
                                     "HIGH": cls.safe_decimal(
-                                        result.get("HIGH", 0)
+                                        result.get("HIGH", 0),
                                     ),
                                     "LOW": cls.safe_decimal(
-                                        result.get("LOW", 0)
+                                        result.get("LOW", 0),
                                     ),
                                     "VOLUME": result.get("QTY", 0) or 0,
                                     "VALUE": cls.safe_decimal(
-                                        result.get("VALUE", 0)
+                                        result.get("VALUE", 0),
                                     ),
                                     "CHANGE": cls.safe_decimal(
-                                        result.get("CHANGE", 0)
+                                        result.get("CHANGE", 0),
                                     ),
                                     "CHANGEPERCENT": cls.safe_decimal(
-                                        result.get("LASTCHANGEPRCNT", 0)
+                                        result.get("LASTCHANGEPRCNT", 0),
                                     ),
                                 }
                                 cls._cache[ticker] = quote_data
@@ -109,6 +111,18 @@ class MOEXService:
         for stock in stocks:
             quote = quotes.get(stock.ticker)
             if quote and quote["LAST"] > 0:
+                StockHistory.objects.create(
+                    stock=stock,
+                    last_price=stock.last_price,
+                    open_price=stock.open_price,
+                    high_price=stock.high_price,
+                    low_price=stock.low_price,
+                    volume=stock.volume,
+                    value=stock.value,
+                    change=stock.change,
+                    change_percent=stock.change_percent,
+                )
+
                 stock.last_price = quote["LAST"]
                 stock.open_price = quote.get("OPEN", stock.open_price)
                 stock.high_price = quote.get("HIGH", stock.high_price)
@@ -127,33 +141,27 @@ class MOEXService:
         return updated_count
 
     @classmethod
-    def update_single_stock(cls, ticker):
-        try:
-            stock = Stock.objects.get(ticker=ticker)
-            quotes = cls.get_current_quotes([ticker])
+    def save_history_snapshot(cls):
+        stocks = Stock.objects.all()
+        if not stocks.exists():
+            return 0
 
-            if quotes and quotes.get(ticker):
-                quote = quotes[ticker]
-                if quote and quote["LAST"] > 0:
-                    stock.last_price = quote["LAST"]
-                    stock.open_price = quote.get("OPEN", stock.open_price)
-                    stock.high_price = quote.get("HIGH", stock.high_price)
-                    stock.low_price = quote.get("LOW", stock.low_price)
-                    stock.volume = quote.get("VOLUME", stock.volume)
-                    stock.value = quote.get("VALUE", stock.value)
-                    stock.change = quote.get("CHANGE", stock.change)
-                    stock.change_percent = quote.get(
-                        "CHANGEPERCENT",
-                        stock.change_percent,
-                    )
-                    stock.last_price_updated = timezone.now()
-                    stock.save()
-                    return stock
+        saved_count = 0
+        for stock in stocks:
+            StockHistory.objects.create(
+                stock=stock,
+                last_price=stock.last_price,
+                open_price=stock.open_price,
+                high_price=stock.high_price,
+                low_price=stock.low_price,
+                volume=stock.volume,
+                value=stock.value,
+                change=stock.change,
+                change_percent=stock.change_percent,
+            )
+            saved_count += 1
 
-        except Stock.DoesNotExist:
-            pass
-
-        return None
+        return saved_count
 
     @classmethod
     def get_cache_stats(cls):

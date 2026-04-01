@@ -49,9 +49,7 @@ class Game(models.Model):
         verbose_name="Стартовый капитал",
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Игра"
@@ -62,11 +60,22 @@ class Game(models.Model):
 
     @property
     def invite_link(self):
-        return f"/games/play/{self.game_id}/"
+        return f"/game/play/{self.game_id}/"
 
     @property
     def players_count(self):
         return self.players.count()
+
+    def start_game(self):
+        self.status = "active"
+        self.save()
+
+    def finish_game(self):
+        self.status = "finished"
+        self.save()
+
+        for player in self.players.all():
+            player.finish_game()
 
 
 class GamePlayer(models.Model):
@@ -170,6 +179,92 @@ class GamePlayer(models.Model):
         self.total_value = self.calculate_total_value()
         self.save(update_fields=["total_value"])
 
+    def finish_game(self):
+        self.final_value = self.total_value
+        self.profit = self.total_value - self.game.start_capital
+        self.save(update_fields=["final_value", "profit"])
+
+    def can_buy(self, stock, quantity):
+        return self.cash >= (stock.last_price * quantity)
+
+    def buy_stock(self, stock, quantity):
+        cost = stock.last_price * quantity
+
+        if not self.can_buy(stock, quantity):
+            raise ValueError(
+                f"Недостаточно средств. Доступно: {self.cash:.2f} ₽",
+            )
+
+        holding, created = GameHolding.objects.get_or_create(
+            player=self,
+            stock=stock,
+            defaults={"average_price": stock.last_price, "quantity": 0},
+        )
+
+        if not created and holding.quantity > 0:
+            total_cost = (holding.average_price * holding.quantity) + cost
+            new_quantity = holding.quantity + quantity
+            holding.average_price = total_cost / new_quantity
+
+        holding.quantity += quantity
+        holding.save()
+
+        self.cash -= cost
+        self.save()
+
+        GameTransaction.objects.create(
+            player=self,
+            stock=stock,
+            type="buy",
+            quantity=quantity,
+            price=stock.last_price,
+            total=cost,
+        )
+
+        self.update_total_value()
+        return holding
+
+    def can_sell(self, stock, quantity):
+        try:
+            holding = GameHolding.objects.get(player=self, stock=stock)
+            return holding.quantity >= quantity
+        except GameHolding.DoesNotExist:
+            return False
+
+    def sell_stock(self, stock, quantity):
+        try:
+            holding = GameHolding.objects.get(player=self, stock=stock)
+        except GameHolding.DoesNotExist:
+            raise ValueError("У вас нет таких акций")
+
+        if holding.quantity < quantity:
+            raise ValueError(
+                f"Недостаточно акций. У вас: {holding.quantity} шт.",
+            )
+
+        revenue = stock.last_price * quantity
+
+        holding.quantity -= quantity
+        if holding.quantity == 0:
+            holding.delete()
+        else:
+            holding.save()
+
+        self.cash += revenue
+        self.save()
+
+        GameTransaction.objects.create(
+            player=self,
+            stock=stock,
+            type="sell",
+            quantity=quantity,
+            price=stock.last_price,
+            total=revenue,
+        )
+
+        self.update_total_value()
+        return True
+
 
 class GameHolding(models.Model):
     player = models.ForeignKey(
@@ -200,8 +295,7 @@ class GameHolding(models.Model):
 
     def __str__(self):
         return (
-            f"{self.player.player_name}: "
-            f"{self.stock.ticker} x{self.quantity}"
+            f"{self.player.player_name}: {self.stock.ticker} x{self.quantity}"
         )
 
     @property
@@ -218,8 +312,7 @@ class GameHolding(models.Model):
             return (
                 (self.stock.last_price - self.average_price)
                 / self.average_price
-                * 100
-            )
+            ) * 100
 
         return 0
 
@@ -260,9 +353,14 @@ class GameTransaction(models.Model):
         verbose_name="Сумма",
     )
 
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
     class Meta:
         verbose_name = "Сделка в игре"
         verbose_name_plural = "Сделки в игре"
+        ordering = ["-created_at"]
 
     def __str__(self):
         return (

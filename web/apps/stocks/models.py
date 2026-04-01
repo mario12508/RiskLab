@@ -126,8 +126,14 @@ class StockHistory(models.Model):
         related_name="price_history",
         verbose_name="Акция",
     )
-    date = models.DateField(
-        verbose_name="Дата",
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата и время",
+    )
+    last_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="Последняя цена",
     )
     open_price = models.DecimalField(
         max_digits=12,
@@ -144,22 +150,36 @@ class StockHistory(models.Model):
         decimal_places=2,
         verbose_name="Минимум",
     )
-    close_price = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        verbose_name="Цена закрытия",
-    )
     volume = models.BigIntegerField(
         default=0,
         verbose_name="Объем торгов",
+    )
+    value = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=0,
+        verbose_name="Оборот",
+    )
+    change = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Изменение",
+    )
+    change_percent = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+        verbose_name="Изменение %",
     )
 
     class Meta:
         verbose_name = "История цен"
         verbose_name_plural = "Истории цен"
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.stock.ticker} - {self.date}"
+        return f"{self.stock.ticker} - {self.created_at}"
 
 
 class Scenario(models.Model):

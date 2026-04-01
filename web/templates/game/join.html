@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Присоединиться к игре | ИнвестТренажер{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 500px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">Присоединиться к игре</h1>
+    <a href="{% url 'game:list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Назад
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">{{ game.name }}</h5>
+    </div>
+    <div class="card-body">
+      <p class="text-muted mb-3">{{ game.description|default:"Нет описания" }}</p>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Стартовый капитал: <strong>{{ game.start_capital|floatformat:0 }} ₽</strong>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="player_name" class="form-label fw-bold">Ваше имя</label>
+          <input type="text" class="form-control" id="player_name" name="player_name" required
+                 placeholder="Введите имя для игры" maxlength="100">
+          <div class="form-text">Как вас будут видеть другие игроки</div>
+        </div>
+        <button type="submit" class="btn btn-success w-100">
+          <i class="bi bi-play-fill"></i> Присоединиться
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
