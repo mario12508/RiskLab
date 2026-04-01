@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+  <h2>Импорт сценария из CSV</h2>
+
+  <div style="margin: 20px 0;">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;">Название сценария:</label>
+        <input type="text" name="scenario_name" style="width: 100%; padding: 5px;" required>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;">Описание:</label>
+        <textarea name="scenario_description" rows="3" style="width: 100%; padding: 5px;"></textarea>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;">CSV файл:</label>
+        <input type="file" name="csv_file" accept=".csv" required>
+        <div style="margin-top: 5px; font-size: 12px; color: #666;">
+          Формат: ticker;coefficient;explanation<br>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button type="submit" style="padding: 5px 15px;">Импортировать</button>
+        <a href="../" style="margin-left: 10px;">Отмена</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

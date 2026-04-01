@@ -1,8 +1,8 @@
 __all__ = ()
 
 from apps.trading.models import (
-    PersonalPortfolio,
     PersonalHolding,
+    PersonalPortfolio,
     PersonalTransaction,
 )
 

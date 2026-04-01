@@ -1,6 +1,6 @@
 __all__ = ()
 
-from apps.game.models import Game, GamePlayer, GameHolding, GameTransaction
+from apps.game.models import Game, GameHolding, GamePlayer, GameTransaction
 
 from django.contrib import admin
 
