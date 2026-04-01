@@ -1,10 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}Результаты {{ game.name }} | ИнвестТренажер{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="display-5 fw-bold mb-4">Результаты игры: {{ game.name }}</h1>
+  
+  {% if stress_results %}
+  <div class="alert alert-info mb-4">
+    <h5><i class="bi bi-flask"></i> Применен сценарий: {{ stress_results.scenario_name }}</h5>
+  </div>
+  {% endif %}
+  
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Итоговый рейтинг</h5>
+        </div>
+        <div class="card-body">
+          {% if ranking %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Место</th>
+                  <th>Игрок</th>
+                  <th>Итоговая стоимость</th>
+                  <th>Прибыль</th>
+                 </tr>
+              </thead>
+              <tbody>
+                {% for item in ranking %}
+                <tr>
+                  <td>
+                    {% if item.position == 1 %}
+                      🥇 1
+                    {% elif item.position == 2 %}
+                      🥈 2
+                    {% elif item.position == 3 %}
+                      🥉 3
+                    {% else %}
+                      {{ item.position }}
+                    {% endif %}
+                  </td>
+                  <td>
+                    <strong>{{ item.player.player_name }}</strong>
+                    {% if item.player.user %}
+                    <span class="badge bg-info ms-1">авторизован</span>
+                    {% endif %}
+                  </td>
+                  <td class="fw-bold">{{ item.player.final_value|floatformat:2 }} ₽</td>
+                  <td class="{% if item.player.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {% if item.player.profit >= 0 %}+{% endif %}{{ item.player.profit|floatformat:2 }} ₽
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-trophy fs-1 text-muted"></i>
+            <p class="mt-3">Нет результатов</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      {% if stock_changes %}
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning">
+          <h5 class="mb-0">Влияние сценария на акции</h5>
+        </div>
+        <div class="card-body">
+          {% for stock in stock_changes %}
+          <div class="mb-3">
+            <strong>{{ stock.ticker }} - {{ stock.name }}</strong>
+            <p class="text-muted small mb-0">{{ stock.explanation }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      
+      <div class="card shadow-sm mt-3">
+        <div class="card-body text-center">
+          <a href="{% url 'game:list' %}" class="btn btn-primary">
+            <i class="bi bi-joystick"></i> К списку игр
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

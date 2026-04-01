@@ -18,6 +18,8 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", default="no_key")
 
 DEBUG = load_bool("DJANGO_DEBUG", True)
 
+SITE_URL = os.getenv("DJANGO_SITE_URL", default="http://127.0.0.1:8000")
+
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", default="*").split(",")
 
 INSTALLED_APPS = [

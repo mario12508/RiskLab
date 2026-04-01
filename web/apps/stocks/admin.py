@@ -46,12 +46,10 @@ class StockHistoryAdmin(admin.ModelAdmin):
         "stock__ticker",
         "stock__name",
     )
-    readonly_fields = (
-        "created_at",
-    )
+    readonly_fields = ("created_at",)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('stock')
+        return super().get_queryset(request).select_related("stock")
 
 
 @admin.register(Scenario)

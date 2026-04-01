@@ -109,8 +109,17 @@ class GameDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        if not self.object.qr_code:
+            self.object.generate_qr_code()
+            self.object.save()
+
+        context["qr_code_url"] = (
+            self.object.qr_code.url if self.object.qr_code else None
+        )
         context["players"] = self.object.players.all()
         context["scenarios"] = Scenario.objects.all()
+
         return context
 
 
@@ -122,10 +131,10 @@ class GamePlayView(TemplateView):
         self.player = self._get_player(request)
 
         if not self.player:
-            return redirect("game:game_join", game_id=self.game.game_id)
+            return redirect("game:join", game_id=self.game.game_id)
 
         if self.game.status == "finished":
-            return redirect("game:game_results", game_id=self.game.game_id)
+            return redirect("game:results", game_id=self.game.game_id)
 
         return super().dispatch(request, *args, **kwargs)
 

@@ -1,9 +1,13 @@
 __all__ = ()
 
 import uuid
+import qrcode
+from io import BytesIO
 
+from django.core.files import File
 from django.conf import settings
 from django.db import models
+from django.urls import reverse
 
 
 class Game(models.Model):
@@ -49,7 +53,15 @@ class Game(models.Model):
         verbose_name="Стартовый капитал",
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    qr_code = models.ImageField(
+        upload_to="game_qr_codes/",
+        blank=True,
+        null=True,
+        verbose_name="QR-код",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
 
     class Meta:
         verbose_name = "Игра"
@@ -76,6 +88,27 @@ class Game(models.Model):
 
         for player in self.players.all():
             player.finish_game()
+
+    def generate_qr_code(self):
+        link = f"{settings.SITE_URL}{reverse('game:join', args=[self.game_id])}"
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(link)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+
+        self.qr_code.save(f"qr_{self.game_id}.png", File(buffer), save=False)
+
+        return self.qr_code.url
 
 
 class GamePlayer(models.Model):
@@ -120,6 +153,11 @@ class GamePlayer(models.Model):
         blank=True,
         verbose_name="Итоговая стоимость",
     )
+    rank = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Место",
+    )
 
     sharpe_ratio = models.DecimalField(
         max_digits=10,
@@ -161,12 +199,12 @@ class GamePlayer(models.Model):
         total = self.cash
         for holding in self.holdings.select_related("stock").all():
             if (
-                stress_coefficients
-                and holding.stock.ticker in stress_coefficients
+                    stress_coefficients
+                    and holding.stock.ticker in stress_coefficients
             ):
                 price = (
-                    holding.stock.last_price
-                    * stress_coefficients[holding.stock.ticker]
+                        holding.stock.last_price
+                        * stress_coefficients[holding.stock.ticker]
                 )
             else:
                 price = holding.stock.last_price
@@ -310,8 +348,8 @@ class GameHolding(models.Model):
     def profit_loss_percent(self):
         if self.average_price > 0:
             return (
-                (self.stock.last_price - self.average_price)
-                / self.average_price
+                    (self.stock.last_price - self.average_price)
+                    / self.average_price
             ) * 100
 
         return 0

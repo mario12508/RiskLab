@@ -176,7 +176,7 @@ class StockHistory(models.Model):
     class Meta:
         verbose_name = "История цен"
         verbose_name_plural = "Истории цен"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.stock.ticker} - {self.created_at}"
