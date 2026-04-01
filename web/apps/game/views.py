@@ -222,9 +222,9 @@ class ApplyStressTestView(LoginRequiredMixin, View):
             new_value = player.calculate_total_value(impacts)
 
             player.total_value = new_value
-            player.final_value = new_value  # Сохраняем итоговую стоимость
-            player.profit = new_value - game.start_capital  # Сохраняем прибыль
-            player.save()  # Сохраняем изменения в БД
+            player.final_value = new_value
+            player.profit = new_value - game.start_capital
+            player.save()
 
             change = new_value - old_value
             change_percent = (change / old_value * 100) if old_value > 0 else 0
