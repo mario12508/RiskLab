@@ -6,11 +6,15 @@ from apps.stocks.models import Stock
 
 from django.utils import timezone
 
+from cachetools import TTLCache
+
 import requests
 
 
 class MOEXService:
     BASE_URL = "https://iss.moex.com/iss"
+
+    _cache = TTLCache(maxsize=1000, ttl=300)
 
     @classmethod
     def safe_decimal(cls, value):
@@ -25,57 +29,69 @@ class MOEXService:
     @classmethod
     def get_current_quotes(cls, tickers):
         quotes = {}
+        tickers_cesh = []
 
         for ticker in tickers:
-            url = f"{cls.BASE_URL}/engines/stock/markets/shares/securities/{ticker}.json"
+            cached_quote = cls._cache.get(ticker)
+            if cached_quote is not None:
+                quotes[ticker] = cached_quote
+            else:
+                tickers_cesh.append(ticker)
+        if tickers_cesh:
+            for ticker in tickers_cesh:
+                url = f"{cls.BASE_URL}/engines/stock/markets/shares/securities/{ticker}.json"
 
-            try:
-                response = requests.get(url, timeout=10)
-                data = response.json()
+                try:
+                    response = requests.get(url, timeout=10)
+                    data = response.json()
 
-                if "marketdata" in data and data["marketdata"].get("data"):
-                    columns = data["marketdata"]["columns"]
-                    rows = data["marketdata"]["data"]
+                    if "marketdata" in data and data["marketdata"].get("data"):
+                        columns = data["marketdata"]["columns"]
+                        rows = data["marketdata"]["data"]
 
-                    for row in rows:
-                        board = row[1] if len(row) > 1 else ""
-                        if board == "TQBR":
-                            result = {}
-                            for i, col in enumerate(columns):
-                                if i < len(row):
-                                    result[col] = row[i]
+                        for row in rows:
+                            board = row[1] if len(row) > 1 else ""
+                            if board == "TQBR":
+                                result = {}
+                                for i, col in enumerate(columns):
+                                    if i < len(row):
+                                        result[col] = row[i]
+                                quote_data = {
+                                    "LAST": cls.safe_decimal(
+                                        result.get("LAST", 0)
+                                    ),
+                                    "OPEN": cls.safe_decimal(
+                                        result.get("OPEN", 0)
+                                    ),
+                                    "HIGH": cls.safe_decimal(
+                                        result.get("HIGH", 0)
+                                    ),
+                                    "LOW": cls.safe_decimal(
+                                        result.get("LOW", 0)
+                                    ),
+                                    "VOLUME": result.get("QTY", 0) or 0,
+                                    "VALUE": cls.safe_decimal(
+                                        result.get("VALUE", 0)
+                                    ),
+                                    "CHANGE": cls.safe_decimal(
+                                        result.get("CHANGE", 0)
+                                    ),
+                                    "CHANGEPERCENT": cls.safe_decimal(
+                                        result.get("LASTCHANGEPRCNT", 0)
+                                    ),
+                                }
+                                cls._cache[ticker] = quote_data
 
-                            quotes[ticker] = {
-                                "LAST": cls.safe_decimal(
-                                    result.get("LAST", 0),
-                                ),
-                                "OPEN": cls.safe_decimal(
-                                    result.get("OPEN", 0),
-                                ),
-                                "HIGH": cls.safe_decimal(
-                                    result.get("HIGH", 0),
-                                ),
-                                "LOW": cls.safe_decimal(result.get("LOW", 0)),
-                                "VOLUME": result.get("QTY", 0) or 0,
-                                "VALUE": cls.safe_decimal(
-                                    result.get("VALUE", 0),
-                                ),
-                                "CHANGE": cls.safe_decimal(
-                                    result.get("CHANGE", 0),
-                                ),
-                                "CHANGEPERCENT": cls.safe_decimal(
-                                    result.get("LASTCHANGEPRCNT", 0),
-                                ),
-                            }
-                            break
+                                quotes[ticker] = quote_data
+                                break
 
-                    if ticker not in quotes:
+                        if ticker not in quotes:
+                            quotes[ticker] = None
+                    else:
                         quotes[ticker] = None
-                else:
-                    quotes[ticker] = None
 
-            except Exception:
-                quotes[ticker] = None
+                except Exception:
+                    quotes[ticker] = None
 
         return quotes
 
@@ -138,3 +154,11 @@ class MOEXService:
             pass
 
         return None
+
+    @classmethod
+    def get_cache_stats(cls):
+        return {
+            "cache_size": len(cls._cache),
+            "cached_tickers": list(cls._cache.keys()),
+            "ttl_seconds": cls._cache.ttl,
+        }

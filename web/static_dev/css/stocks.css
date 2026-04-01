@@ -1,0 +1,165 @@
+:root {
+    --card-hover-bg: rgba(13, 110, 253, 0.04);
+}
+
+body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: background-color 0.3s ease;
+}
+
+.search-container {
+    position: relative;
+    max-width: 400px;
+}
+
+.search-container i {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bs-secondary-color);
+    z-index: 5;
+}
+
+#stockSearch {
+    padding-left: 3rem;
+    height: 52px;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    border-radius: 50px;
+}
+
+#stockSearch:focus {
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    border-color: var(--bs-primary);
+}
+
+.stock-card {
+    background-color: var(--bs-card-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: 1.25rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stock-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.price-display {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--bs-emphasis-color);
+}
+
+.change-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+[data-bs-theme="light"] .up { background: #dcfce7; color: #15803d; }
+[data-bs-theme="light"] .down { background: #fee2e2; color: #b91c1c; }
+[data-bs-theme="light"] .sector-default { background: #f1f5f9; color: #475569; }
+
+[data-bs-theme="dark"] .up { background: rgba(21, 128, 61, 0.2); color: #4ade80; }
+[data-bs-theme="dark"] .down { background: rgba(185, 28, 28, 0.2); color: #f87171; }
+[data-bs-theme="dark"] .sector-default { background: rgba(255, 255, 255, 0.05); color: #cbd5e1; }
+
+.sector-it { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
+.sector-bank { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+.sector-oil { background: rgba(225, 29, 72, 0.15); color: #fb7185; }
+
+.badge-sector {
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+}
+
+.btn-refresh {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.detail-page-wrapper {
+    min-height: 80vh;
+    padding-bottom: 5rem;
+}
+
+.stat-pill-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    height: 100%;
+}
+
+.info-section-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.price-main {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--bs-emphasis-color);
+}
+
+/* Виджет торговли */
+.trading-sticky-card {
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: 1.5rem !important;
+    background: var(--bs-card-bg);
+    position: sticky;
+    top: 2rem;
+}
+
+.input-group-custom {
+    background: var(--bs-tertiary-bg);
+    border-radius: 0.75rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--bs-border-color);
+}
+
+.input-group-custom input {
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    color: var(--bs-emphasis-color);
+    width: 100%;
+}
+
+.input-group-custom input:focus { outline: none; }
+
+[data-bs-theme="light"] .up { background: #dcfce7; color: #15803d; }
+[data-bs-theme="light"] .down { background: #fee2e2; color: #b91c1c; }
+[data-bs-theme="dark"] .up { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+[data-bs-theme="dark"] .down { background: rgba(248, 113, 113, 0.15); color: #f87171; }

@@ -1,124 +1,218 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ stock.name }} ({{ stock.ticker }}){% endblock %}
+{% block title %}{{ stock.name }} | Детали{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" href="{% static 'css/stocks.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="row">
-    <div class="col-md-8">
-      <h1>{{ stock.name }} ({{ stock.ticker }})</h1>
-      <p><strong>Сектор:</strong> {{ stock.get_sector_display }}</p>
-      <p><strong>Описание:</strong> {{ stock.description }}</p>
-      <p><strong>Дивиденды:</strong> {{ stock.dividend_yield }}%</p>
-      <p><strong>Дивидендная история:</strong> {{ stock.dividend_history|default:"Нет данных" }}</p>
-      <p><strong>Волатильность:</strong> {{ stock.get_volatility_display }}</p>
-    </div>
+<div class="container detail-page-wrapper mt-4">
+  <nav class="mb-4">
+    <a href="{% url 'stocks:list' %}" class="btn btn-link link-secondary p-0 text-decoration-none">
+      <i class="bi bi-chevron-left"></i> К списку акций
+    </a>
+  </nav>
 
-    <div class="col-md-4">
-      <div class="card mb-3">
-        <div class="card-header">
-          <h5>Котировки</h5>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge-sector sector-default">{{ stock.get_sector_display }}</span>
+          <span class="text-primary fw-bold">{{ stock.ticker }}</span>
         </div>
-        <div class="card-body">
-          <p><strong>Цена:</strong> {{ stock.last_price }} ₽</p>
-          <p><strong>Изменение:</strong>
-            <span class="{% if stock.change_percent > 0 %}text-success{% else %}text-danger{% endif %}">
-              {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
+        <h1 class="display-5 fw-bold text-emphasis">{{ stock.name }}</h1>
+      </div>
+
+      <div class="mb-5 py-3 border-bottom border-top border-secondary-subtle">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="price-main">{{ stock.last_price|floatformat:2 }} ₽</span>
+          </div>
+          <div class="col-auto">
+            <span class="change-badge {% if stock.change_percent >= 0 %}up{% else %}down{% endif %} fs-5">
+              {% if stock.change_percent >= 0 %}+{% endif %}{{ stock.change_percent|floatformat:2 }}%
             </span>
-          </p>
-          <p><strong>Максимум:</strong> {{ stock.high_price }} ₽</p>
-          <p><strong>Минимум:</strong> {{ stock.low_price }} ₽</p>
-          <p><strong>Объем:</strong> {{ stock.volume|floatformat:0 }}</p>
+          </div>
         </div>
       </div>
 
-      {% if user.is_authenticated %}
-      <div class="card">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">Торговля</h5>
+      <div class="row g-3 mb-4">
+        <div class="col-4 col-md-4">
+          <div class="stat-pill-card">
+            <div class="text-secondary small mb-1">Макс.</div>
+            <div class="fw-bold text-emphasis">{{ stock.high_price|floatformat:2 }}</div>
+          </div>
         </div>
-        <div class="card-body">
+        <div class="col-4 col-md-4">
+          <div class="stat-pill-card">
+            <div class="text-secondary small mb-1">Мин.</div>
+            <div class="fw-bold text-emphasis">{{ stock.low_price|floatformat:2 }}</div>
+          </div>
+        </div>
+        <div class="col-4 col-md-4">
+          <div class="stat-pill-card">
+            <div class="text-secondary small mb-1">Объем</div>
+            <div class="fw-bold text-emphasis">{{ stock.volume|floatformat:0 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section-card">
+        <h5 class="fw-bold mb-3 text-emphasis">О компании</h5>
+        <p class="text-secondary mb-0" style="text-align: justify;">{{ stock.description }}</p>
+      </div>
+
+      <div class="info-section-card">
+        <div class="row align-items-center">
+          <div class="col-md-6 border-end border-secondary-subtle">
+            <h5 class="fw-bold mb-3 text-emphasis">Дивиденды</h5>
+            <div class="d-flex align-items-baseline gap-2">
+              <span class="fs-2 fw-bold text-success">{{ stock.dividend_yield }}%</span>
+              <span class="text-secondary small">годовых</span>
+            </div>
+          </div>
+          <div class="col-md-6 ps-md-4">
+            <h5 class="fw-bold mb-3 text-emphasis">Риск-профиль</h5>
+            <div class="fs-5 fw-semibold">
+               {% if stock.volatility == 'low' %}<span class="text-success">Низкая волатильность</span>
+               {% elif stock.volatility == 'medium' %}<span class="text-warning">Средняя волатильность</span>
+               {% else %}<span class="text-danger">Высокая волатильность</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 p-3 bg-body-tertiary rounded-3 small text-secondary">
+          <i class="bi bi-journal-text me-2"></i> {{ stock.dividend_history|default:"История выплат подготавливается." }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="trading-sticky-card p-4 shadow-sm">
+        {% if user.is_authenticated %}
+          <h4 class="fw-bold mb-4 text-emphasis">Сделка</h4>
+
           {% if portfolio %}
-          <div class="alert alert-info py-2 mb-3">
-            <small>Доступно: {{ portfolio.cash|floatformat:2 }} ₽</small>
+          <div class="p-3 mb-4 rounded-3 bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+            <span class="small fw-bold text-primary">Баланс</span>
+            <span class="fw-bold text-primary">{{ portfolio.cash|floatformat:2 }} ₽</span>
           </div>
           {% endif %}
 
-          <form method="post" action="{% url 'trading:buy' %}">
-            {% csrf_token %}
-            <input type="hidden" name="ticker" value="{{ stock.ticker }}">
-            <div class="mb-3">
-              <label class="form-label">Количество акций</label>
-              <input type="number" name="quantity" class="form-control" min="1" required id="buy-quantity">
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Сумма покупки</label>
-              <input type="text" class="form-control bg-light" id="buy-total" readonly>
-            </div>
-            <button type="submit" class="btn btn-success w-100 mb-2">
-              <i class="bi bi-bag-check"></i> Купить
-            </button>
-          </form>
+          <ul class="nav nav-pills nav-fill mb-4 p-1 bg-body-tertiary rounded-pill" id="tradeTabs">
+            <li class="nav-item">
+              <button class="nav-link active rounded-pill px-0" data-bs-toggle="pill" data-bs-target="#buy-p">Купить</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link rounded-pill px-0" data-bs-toggle="pill" data-bs-target="#sell-p">Продать</button>
+            </li>
+          </ul>
 
-          <hr>
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="buy-p">
+              <form method="post" action="{% url 'trading:buy' %}">
+                {% csrf_token %}
+                <input type="hidden" name="ticker" value="{{ stock.ticker }}">
+                <div class="mb-3">
+                  <label class="small text-secondary fw-bold mb-2">КОЛ-ВО АКЦИЙ</label>
+                  <div class="input-group-custom d-flex">
+                    <input type="number" name="quantity" class="form-control" min="1" required id="bq" placeholder="0">
+                  </div>
+                </div>
+                <div class="mb-4">
+                  <div class="small text-secondary mb-1">Сумма покупки:</div>
+                  <div class="fs-4 fw-bold text-emphasis" id="bt">0.00 ₽</div>
+                </div>
+                <button type="submit" class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm">Купить</button>
+              </form>
+            </div>
 
-          <form method="post" action="{% url 'trading:sell' %}">
-            {% csrf_token %}
-            <input type="hidden" name="ticker" value="{{ stock.ticker }}">
-            <div class="mb-3">
-              <label class="form-label">Количество акций</label>
-              <input type="number" name="quantity" class="form-control" min="1" required id="sell-quantity">
-              {% if user_holding %}
-              <small class="text-muted">У вас: {{ user_holding.quantity }} шт.</small>
-              {% endif %}
+            <div class="tab-pane fade" id="sell-p">
+              <form method="post" action="{% url 'trading:sell' %}">
+                {% csrf_token %}
+                <input type="hidden" name="ticker" value="{{ stock.ticker }}">
+                <div class="mb-3">
+                  <label class="small text-secondary fw-bold mb-2">КОЛ-ВО АКЦИЙ</label>
+                  <div class="input-group-custom">
+                    <input type="number" name="quantity" class="form-control" min="1" required id="sq" placeholder="0">
+                  </div>
+                  {% if user_holding %}
+                  <div class="small text-secondary mt-2">В портфеле: <b>{{ user_holding.quantity }}</b> шт.</div>
+                  {% endif %}
+                </div>
+                <div class="mb-4">
+                  <div class="small text-secondary mb-1">Вы получите:</div>
+                  <div class="fs-4 fw-bold text-emphasis" id="st">0.00 ₽</div>
+                </div>
+                <button type="submit" class="btn btn-danger w-100 rounded-pill py-3 fw-bold shadow-sm">Продать</button>
+              </form>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Сумма продажи</label>
-              <input type="text" class="form-control bg-light" id="sell-total" readonly>
-            </div>
-            <button type="submit" class="btn btn-danger w-100">
-              <i class="bi bi-bag-x"></i> Продать
-            </button>
-          </form>
-        </div>
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-lock fs-1 text-secondary opacity-25"></i>
+            <p class="mt-3 text-secondary">Торговля доступна после входа</p>
+            <a href="{% url 'users:login' %}" class="btn btn-outline-primary rounded-pill w-100 mt-2">Войти</a>
+          </div>
+        {% endif %}
       </div>
-      {% else %}
-      <div class="card bg-light">
-        <div class="card-body text-center">
-          <i class="bi bi-person-circle fs-1 text-muted"></i>
-          <p class="mt-2">Авторизуйтесь для торговли</p>
-          <a href="{% url 'users:login' %}" class="btn btn-primary">Войти</a>
-        </div>
-      </div>
-      {% endif %}
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block js %}
 <script>
-  const price = {{ stock.last_price }};
+  const price = {{ stock.last_price|stringformat:".2f" }};
+  const userCash = {% if portfolio %}{{ portfolio.cash|stringformat:".2f" }}{% else %}0{% endif %};
+  const userStocks = {% if user_holding %}{{ user_holding.quantity }}{% else %}0{% endif %};
 
-  const buyQuantity = document.getElementById('buy-quantity');
-  const buyTotal = document.getElementById('buy-total');
+  function bindCalc(inputId, outputId, submitBtnId, errorId, limit, isBuy) {
+    const input = document.getElementById(inputId);
+    const output = document.getElementById(outputId);
+    const submitBtn = input.closest('form').querySelector('button[type="submit"]');
+    const errorDiv = document.createElement('div');
 
-  if (buyQuantity) {
-    buyQuantity.addEventListener('input', function() {
-      const total = price * this.value;
-      buyTotal.value = total.toFixed(2) + ' ₽';
-    });
-    buyQuantity.dispatchEvent(new Event('input'));
+    errorDiv.className = 'text-danger small mt-2 d-none fw-bold';
+    input.parentNode.after(errorDiv);
+
+    if (input && output) {
+      input.addEventListener('input', () => {
+        const qty = parseInt(input.value) || 0;
+        const total = price * qty;
+
+        output.innerText = total.toLocaleString('ru-RU', { minimumFractionDigits: 2 }) + ' ₽';
+
+        let hasError = false;
+        if (isBuy) {
+          if (total > userCash) {
+            errorDiv.innerText = '⚠️ Недостаточно средств';
+            hasError = true;
+          }
+        } else {
+          if (qty > userStocks) {
+            errorDiv.innerText = `⚠️ У вас только ${userStocks} шт.`;
+            hasError = true;
+          }
+        }
+
+        if (hasError && qty > 0) {
+          errorDiv.classList.remove('d-none');
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50');
+        } else {
+          errorDiv.classList.add('d-none');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50');
+        }
+      });
+    }
   }
 
-  const sellQuantity = document.getElementById('sell-quantity');
-  const sellTotal = document.getElementById('sell-total');
-
-  if (sellQuantity) {
-    sellQuantity.addEventListener('input', function() {
-      const total = price * this.value;
-      sellTotal.value = total.toFixed(2) + ' ₽';
-    });
-    sellQuantity.dispatchEvent(new Event('input'));
-  }
+  document.addEventListener('DOMContentLoaded', () => {
+    bindCalc('bq', 'bt', null, null, userCash, true);
+    bindCalc('sq', 'st', null, null, userStocks, false);
+  });
 </script>
 {% endblock %}
