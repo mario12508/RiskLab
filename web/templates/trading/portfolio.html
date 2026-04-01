@@ -9,25 +9,25 @@
 
   <div class="row g-4 mb-5">
     <div class="col-md-4">
-      <div class="card bg-primary text-white">
+      <div class="card bg-primary ">
         <div class="card-body">
-          <h6 class="card-title text-white-50">Общая стоимость</h6>
+          <h6 class="card-title 50">Общая стоимость</h6>
           <h2 class="card-title">{{ portfolio.total_value|floatformat:2 }} ₽</h2>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card bg-success text-white">
+      <div class="card bg-success ">
         <div class="card-body">
-          <h6 class="card-title text-white-50">Доступно средств</h6>
+          <h6 class="card-title">Доступно средств</h6>
           <h2 class="card-title">{{ portfolio.cash|floatformat:2 }} ₽</h2>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card {% if total_profit >= 0 %}bg-success{% else %}bg-danger{% endif %} text-white">
+      <div class="card {% if total_profit >= 0 %}bg-success{% else %}bg-danger{% endif %} ">
         <div class="card-body">
-          <h6 class="card-title text-white-50">Прибыль/Убыток</h6>
+          <h6 class="card-title ">Прибыль/Убыток</h6>
           <h2 class="card-title">
             {% if total_profit >= 0 %}+{% endif %}{{ total_profit|floatformat:2 }} ₽
             <small class="fs-6">({{ profit_percent|floatformat:1 }}%)</small>
