@@ -1,13 +1,14 @@
 __all__ = ()
 
 import uuid
-import qrcode
 from io import BytesIO
 
-from django.core.files import File
 from django.conf import settings
+from django.core.files import File
 from django.db import models
 from django.urls import reverse
+
+import qrcode
 
 
 class Game(models.Model):
@@ -90,7 +91,9 @@ class Game(models.Model):
             player.finish_game()
 
     def generate_qr_code(self):
-        link = f"{settings.SITE_URL}{reverse('game:join', args=[self.game_id])}"
+        link = (
+            f"{settings.SITE_URL}{reverse('game:join', args=[self.game_id])}"
+        )
 
         qr = qrcode.QRCode(
             version=1,
@@ -199,12 +202,12 @@ class GamePlayer(models.Model):
         total = self.cash
         for holding in self.holdings.select_related("stock").all():
             if (
-                    stress_coefficients
-                    and holding.stock.ticker in stress_coefficients
+                stress_coefficients
+                and holding.stock.ticker in stress_coefficients
             ):
                 price = (
-                        holding.stock.last_price
-                        * stress_coefficients[holding.stock.ticker]
+                    holding.stock.last_price
+                    * stress_coefficients[holding.stock.ticker]
                 )
             else:
                 price = holding.stock.last_price
@@ -348,8 +351,8 @@ class GameHolding(models.Model):
     def profit_loss_percent(self):
         if self.average_price > 0:
             return (
-                    (self.stock.last_price - self.average_price)
-                    / self.average_price
+                (self.stock.last_price - self.average_price)
+                / self.average_price
             ) * 100
 
         return 0

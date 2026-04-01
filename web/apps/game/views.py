@@ -1,19 +1,15 @@
 __all__ = ()
 
-import uuid
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib import messages
-from django.db import transaction
-from django.views import View
-from django.views.generic import ListView, DetailView, TemplateView, CreateView
-from django.urls import reverse, reverse_lazy
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.utils.decorators import method_decorator
+from apps.game.models import Game, GamePlayer
+from apps.stocks.models import Scenario, Stock
 
-from apps.stocks.models import Stock, Scenario
-from apps.game.models import Game, GamePlayer, GameHolding, GameTransaction
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from django.views.generic import DetailView, ListView, TemplateView
 
 
 class GameListView(LoginRequiredMixin, ListView):
@@ -22,7 +18,7 @@ class GameListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Game.objects.filter(creator=self.request.user).order_by(
-            "-created_at"
+            "-created_at",
         )
 
     def get_context_data(self, **kwargs):
@@ -77,7 +73,8 @@ class GameJoinView(TemplateView):
             return self.render_to_response(self.get_context_data())
 
         if GamePlayer.objects.filter(
-            game=self.game, player_name=player_name
+            game=self.game,
+            player_name=player_name,
         ).exists():
             messages.error(request, "Игрок с таким именем уже есть")
             return self.render_to_response(self.get_context_data())
@@ -142,7 +139,8 @@ class GamePlayView(TemplateView):
         if request.user.is_authenticated:
             try:
                 return GamePlayer.objects.get(
-                    game=self.game, user=request.user
+                    game=self.game,
+                    user=request.user,
                 )
             except GamePlayer.DoesNotExist:
                 return None
@@ -152,7 +150,8 @@ class GamePlayView(TemplateView):
             if player_name and session_game_id == str(self.game.game_id):
                 try:
                     return GamePlayer.objects.get(
-                        game=self.game, player_name=player_name
+                        game=self.game,
+                        player_name=player_name,
                     )
                 except GamePlayer.DoesNotExist:
                     return None
@@ -168,7 +167,7 @@ class GamePlayView(TemplateView):
         context["player"] = self.player
         context["stocks"] = Stock.objects.all()
         context["holdings"] = self.player.holdings.select_related(
-            "stock"
+            "stock",
         ).all()
         context["scenarios"] = (
             Scenario.objects.all()
@@ -183,7 +182,9 @@ class GamePlayView(TemplateView):
 class GameStartView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         game = get_object_or_404(
-            Game, game_id=kwargs["game_id"], creator=request.user
+            Game,
+            game_id=kwargs["game_id"],
+            creator=request.user,
         )
 
         if game.status != "waiting":
@@ -201,7 +202,9 @@ class GameStartView(LoginRequiredMixin, View):
 class ApplyStressTestView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         game = get_object_or_404(
-            Game, game_id=kwargs["game_id"], creator=request.user
+            Game,
+            game_id=kwargs["game_id"],
+            creator=request.user,
         )
         scenario_id = request.POST.get("scenario_id")
         scenario = get_object_or_404(Scenario, id=scenario_id)
@@ -227,7 +230,7 @@ class ApplyStressTestView(LoginRequiredMixin, View):
                     "new_value": float(new_value),
                     "change": float(change),
                     "change_percent": float(change_percent),
-                }
+                },
             )
 
         request.session["stress_test_results"] = {
@@ -254,7 +257,7 @@ class GameResultsView(TemplateView):
         stress_results = self.request.session.get("stress_test_results")
 
         ranking = self.game.players.filter(final_value__isnull=False).order_by(
-            "-final_value"
+            "-final_value",
         )
 
         for i, player in enumerate(ranking, 1):
@@ -271,7 +274,7 @@ class GameResultsView(TemplateView):
                             "ticker": ticker,
                             "name": stock.name,
                             "explanation": explanation,
-                        }
+                        },
                     )
                 except Stock.DoesNotExist:
                     pass
@@ -282,7 +285,7 @@ class GameResultsView(TemplateView):
                 "ranking": ranking,
                 "stress_results": stress_results,
                 "stock_changes": stock_changes,
-            }
+            },
         )
 
         return context
@@ -327,6 +330,7 @@ class GameBuyView(View, GameTradeMixin):
         try:
             with transaction.atomic():
                 player.buy_stock(stock, quantity)
+
             return JsonResponse(
                 {
                     "success": True,
@@ -335,7 +339,7 @@ class GameBuyView(View, GameTradeMixin):
                     "quantity": quantity,
                     "stock_ticker": stock.ticker,
                     "stock_name": stock.name,
-                }
+                },
             )
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=400)
@@ -362,6 +366,7 @@ class GameSellView(View, GameTradeMixin):
         try:
             with transaction.atomic():
                 player.sell_stock(stock, quantity)
+
             return JsonResponse(
                 {
                     "success": True,
@@ -370,10 +375,13 @@ class GameSellView(View, GameTradeMixin):
                     "quantity": quantity,
                     "stock_ticker": stock.ticker,
                     "stock_name": stock.name,
-                }
+                },
             )
         except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse(
+                {"error": str(e)},
+                status=400,
+            )
 
 
 class GamePortfolioView(View):
@@ -387,10 +395,15 @@ class GamePortfolioView(View):
                 player_name = request.session.get("game_player_name")
                 if not player_name:
                     return JsonResponse(
-                        {"error": "Игрок не найден"}, status=404
+                        {
+                            "error": "Игрок не найден",
+                        },
+                        status=404,
                     )
+
                 player = GamePlayer.objects.get(
-                    game=game, player_name=player_name
+                    game=game,
+                    player_name=player_name,
                 )
         except GamePlayer.DoesNotExist:
             return JsonResponse({"error": "Игрок не найден"}, status=404)
@@ -406,7 +419,7 @@ class GamePortfolioView(View):
                     "quantity": holding.quantity,
                     "price": float(holding.stock.last_price),
                     "value": float(holding.current_value),
-                }
+                },
             )
 
         return JsonResponse(
@@ -414,5 +427,5 @@ class GamePortfolioView(View):
                 "cash": float(player.cash),
                 "total_value": float(player.total_value),
                 "holdings": holdings_data,
-            }
+            },
         )
