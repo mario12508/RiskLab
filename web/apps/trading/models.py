@@ -39,7 +39,7 @@ class PersonalPortfolio(models.Model):
     def calculate_total_value(self):
         total = self.cash
         for holding in self.holdings.select_related("stock").all():
-            total += holding.stock.last_price * holding.quantity
+            total += float(holding.stock.last_price) * holding.quantity
 
         return total
 

@@ -93,7 +93,7 @@ class ScenarioAdmin(admin.ModelAdmin):
             )
 
             csv_data = TextIOWrapper(csv_file.file, encoding="utf-8")
-            reader = csv.DictReader(csv_data, delimiter=';')
+            reader = csv.DictReader(csv_data, delimiter=";")
 
             imported_count = 0
             for row in reader:

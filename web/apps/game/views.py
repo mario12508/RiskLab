@@ -213,13 +213,19 @@ class ApplyStressTestView(LoginRequiredMixin, View):
         explanations = {}
 
         for impact in scenario.impacts.select_related("stock").all():
-            impacts[impact.stock.ticker] = float(impact.coefficient)
+            impacts[impact.stock.ticker] = impact.coefficient
             explanations[impact.stock.ticker] = impact.explanation
 
         results = []
         for player in game.players.all():
             old_value = player.total_value
             new_value = player.calculate_total_value(impacts)
+
+            player.total_value = new_value
+            player.final_value = new_value  # Сохраняем итоговую стоимость
+            player.profit = new_value - game.start_capital  # Сохраняем прибыль
+            player.save()  # Сохраняем изменения в БД
+
             change = new_value - old_value
             change_percent = (change / old_value * 100) if old_value > 0 else 0
 
@@ -237,6 +243,7 @@ class ApplyStressTestView(LoginRequiredMixin, View):
             "scenario_name": scenario.name,
             "results": results,
             "explanations": explanations,
+            "impacts": {k: float(v) for k, v in impacts.items()},
         }
 
         game.finish_game()
@@ -260,29 +267,53 @@ class GameResultsView(TemplateView):
             "-final_value",
         )
 
+        ranking_with_positions = []
         for i, player in enumerate(ranking, 1):
-            player.rank = i
-            player.save(update_fields=["rank"])
+            ranking_with_positions.append(
+                {
+                    "position": i,
+                    "player": player,
+                },
+            )
 
         stock_changes = []
         if stress_results and "explanations" in stress_results:
             for ticker, explanation in stress_results["explanations"].items():
                 try:
                     stock = Stock.objects.get(ticker=ticker)
+                    coefficient = 1.0
+                    if (
+                        "impacts" in stress_results
+                        and ticker in stress_results["impacts"]
+                    ):
+                        coefficient = float(stress_results["impacts"][ticker])
+
+                    change_percent = round((coefficient - 1) * 100, 4)
+
                     stock_changes.append(
                         {
                             "ticker": ticker,
                             "name": stock.name,
                             "explanation": explanation,
+                            "change_percent": change_percent,
+                            "coefficient": coefficient,
                         },
                     )
                 except Stock.DoesNotExist:
-                    pass
+                    stock_changes.append(
+                        {
+                            "ticker": ticker,
+                            "name": ticker,
+                            "explanation": explanation,
+                            "change_percent": 0,
+                            "coefficient": 1,
+                        },
+                    )
 
         context.update(
             {
                 "game": self.game,
-                "ranking": ranking,
+                "ranking": ranking_with_positions,
                 "stress_results": stress_results,
                 "stock_changes": stock_changes,
             },

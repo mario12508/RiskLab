@@ -29,8 +29,7 @@
                   <th>Игрок</th>
                   <th>Итоговая стоимость</th>
                   <th>Прибыль</th>
-                 </tr>
-              </thead>
+                </thead>
               <tbody>
                 {% for item in ranking %}
                 <tr>
@@ -69,7 +68,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="col-md-4">
       {% if stock_changes %}
       <div class="card shadow-sm">
@@ -78,9 +77,16 @@
         </div>
         <div class="card-body">
           {% for stock in stock_changes %}
-          <div class="mb-3">
-            <strong>{{ stock.ticker }} - {{ stock.name }}</strong>
-            <p class="text-muted small mb-0">{{ stock.explanation }}</p>
+          <div class="mb-3 pb-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+              <strong>{{ stock.ticker }} - {{ stock.name }}</strong>
+              {% if stock.change_percent %}
+              <span class="badge {% if stock.change_percent > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
+              </span>
+              {% endif %}
+            </div>
+            <p class="text-muted small mt-1 mb-0">{{ stock.explanation }}</p>
           </div>
           {% endfor %}
         </div>
