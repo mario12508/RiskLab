@@ -13,6 +13,13 @@ import requests
 
 
 class MOEXService:
+    """
+    Сервис для работы с API Московской биржи (MOEX).
+
+    Предоставляет методы для получения текущих котировок, исторических данных,
+    обновления цен акций и сохранения снимков состояния.
+    """
+
     BASE_URL = "https://iss.moex.com/iss"
 
     _cache = TTLCache(maxsize=1000, ttl=300)
@@ -29,6 +36,13 @@ class MOEXService:
 
     @classmethod
     def get_current_quotes(cls, tickers):
+        """
+        Получает текущие котировки для списка тикеров.
+
+        Сначала проверяет кэш, затем запрашивает недостающие тикеры из API MOEX.
+        Используется основная торговая доска TQBR.
+        """
+
         quotes = {}
         tickers_cesh = []
 
@@ -100,30 +114,40 @@ class MOEXService:
 
     @classmethod
     def update_all_stocks(cls):
-        stocks = Stock.objects.all()
-        if not stocks.exists():
+        """
+        Обновляет данные всех акций в БД текущими котировками.
+
+        Сохраняет старые цены в историю, затем обновляет цены.
+        """
+
+        stocks = list(Stock.objects.only(
+            'ticker', 'last_price', 'open_price', 'high_price', 'low_price',
+            'volume', 'value', 'change', 'change_percent', 'last_price_updated'
+        ))
+        if not stocks:
             return 0
 
-        tickers = list(stocks.values_list("ticker", flat=True))
-
+        tickers = [stock.ticker for stock in stocks]
         quotes = cls.get_current_quotes(tickers)
 
-        updated_count = 0
+        history_objects = []
+        updated_stocks = []
         for stock in stocks:
             quote = quotes.get(stock.ticker)
             if quote and quote["LAST"] > 0:
-                StockHistory.objects.create(
-                    stock=stock,
-                    last_price=stock.last_price,
-                    open_price=stock.open_price,
-                    high_price=stock.high_price,
-                    low_price=stock.low_price,
-                    volume=stock.volume,
-                    value=stock.value,
-                    change=stock.change,
-                    change_percent=stock.change_percent,
+                history_objects.append(
+                    StockHistory(
+                        stock=stock,
+                        last_price=stock.last_price,
+                        open_price=stock.open_price,
+                        high_price=stock.high_price,
+                        low_price=stock.low_price,
+                        volume=stock.volume,
+                        value=stock.value,
+                        change=stock.change,
+                        change_percent=stock.change_percent,
+                    )
                 )
-
                 stock.last_price = quote["LAST"]
                 stock.open_price = quote.get("OPEN", stock.open_price)
                 stock.high_price = quote.get("HIGH", stock.high_price)
@@ -131,25 +155,39 @@ class MOEXService:
                 stock.volume = quote.get("VOLUME", stock.volume)
                 stock.value = quote.get("VALUE", stock.value)
                 stock.change = quote.get("CHANGE", stock.change)
-                stock.change_percent = quote.get(
-                    "CHANGEPERCENT",
-                    stock.change_percent,
-                )
+                stock.change_percent = quote.get("CHANGEPERCENT", stock.change_percent)
                 stock.last_price_updated = timezone.now()
-                stock.save()
-                updated_count += 1
+                updated_stocks.append(stock)
 
-        return updated_count
+        if history_objects:
+            StockHistory.objects.bulk_create(history_objects)
+
+        if updated_stocks:
+            Stock.objects.bulk_update(
+                updated_stocks,
+                [
+                    'last_price', 'open_price', 'high_price', 'low_price',
+                    'volume', 'value', 'change', 'change_percent', 'last_price_updated'
+                ]
+            )
+
+        return len(updated_stocks)
 
     @classmethod
     def save_history_snapshot(cls):
-        stocks = Stock.objects.all()
-        if not stocks.exists():
+        """
+        Сохраняет снимок текущего состояния всех акций в историю.
+        """
+        stocks = list(Stock.objects.only(
+            'ticker', 'last_price', 'open_price', 'high_price', 'low_price',
+            'volume', 'value', 'change', 'change_percent'
+        ))
+
+        if not stocks:
             return 0
 
-        saved_count = 0
-        for stock in stocks:
-            StockHistory.objects.create(
+        history_objects = [
+            StockHistory(
                 stock=stock,
                 last_price=stock.last_price,
                 open_price=stock.open_price,
@@ -160,9 +198,10 @@ class MOEXService:
                 change=stock.change,
                 change_percent=stock.change_percent,
             )
-            saved_count += 1
-
-        return saved_count
+            for stock in stocks
+        ]
+        StockHistory.objects.bulk_create(history_objects)
+        return len(history_objects)
 
     @classmethod
     def get_cache_stats(cls):
@@ -173,10 +212,24 @@ class MOEXService:
         }
 
     @classmethod
+    def _get_value_from_row(cls, row, col_map, *names):
+        """
+        Вспомогательный метод ищет значение в строке по нескольким возможным именам колонок.
+        """
+        for name in names:
+            idx = col_map.get(name)
+            if idx is not None and idx < len(row):
+                return row[idx]
+        return None
+
+    @classmethod
     def fetch_and_save_history(cls, ticker, days=120):
+        """
+        Загружает исторические данные по тикеру за указанный период и сохраняет в БД.
+        """
+
         end_date = timezone.now().date()
         start_date = end_date - datetime.timedelta(days=days)
-
         url = (
             f"{cls.BASE_URL}/history/engines/stock/markets/shares/"
             f"boards/TQBR/securities/{ticker}.json"
@@ -193,19 +246,11 @@ class MOEXService:
 
                 col_map = {col: i for i, col in enumerate(columns)}
 
-                def get_val(row, *names):
-                    for name in names:
-                        idx = col_map.get(name)
-                        if idx is not None and idx < len(row):
-                            return row[idx]
-
-                    return None
-
                 stock = Stock.objects.get(ticker=ticker)
                 history_objects = []
 
                 for row in rows:
-                    price_val = get_val(
+                    price_val = cls._get_value_from_row(
                         row,
                         "LEGALCLOSEPRICE",
                         "CLOSE",
@@ -213,12 +258,10 @@ class MOEXService:
                     )
                     price = cls.safe_decimal(price_val)
 
-                    date_str = get_val(row, "TRADEDATE")
-
+                    date_str = cls._get_value_from_row(row, "TRADEDATE")
                     if price > 0 and date_str:
                         dt = datetime.datetime.strptime(date_str, "%Y-%m-%d")
                         aware_dt = timezone.make_aware(dt)
-
                         if not StockHistory.objects.filter(
                             stock=stock,
                             created_at__date=dt.date(),
@@ -228,18 +271,18 @@ class MOEXService:
                                     stock=stock,
                                     last_price=price,
                                     open_price=cls.safe_decimal(
-                                        get_val(row, "OPEN"),
+                                        cls._get_value_from_row(row, "OPEN"),
                                     ),
                                     high_price=cls.safe_decimal(
-                                        get_val(row, "HIGH"),
+                                        cls._get_value_from_row(row, "HIGH"),
                                     ),
                                     low_price=cls.safe_decimal(
-                                        get_val(row, "LOW"),
+                                        cls._get_value_from_row(row, "LOW"),
                                     ),
-                                    volume=get_val(row, "QUANTITY", "VOLUME")
+                                    volume=cls._get_value_from_row(row, "QUANTITY", "VOLUME")
                                     or 0,
                                     value=cls.safe_decimal(
-                                        get_val(row, "VALUE"),
+                                        cls._get_value_from_row(row, "VALUE"),
                                     ),
                                     created_at=aware_dt,
                                 ),
