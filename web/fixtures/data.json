@@ -162,26 +162,236 @@
   },
   {
     "model": "stocks.scenario",
-    "pk": 1,
+    "pk": 4,
     "fields": {
-      "name": "Кризис 2014",
-      "description": "Падение"
+      "name": "2022 год",
+      "description": "Против России ввели рекордное количество запретов. Нашим банкам запретили переводить деньги по всему миру, а многим компаниям закрыли доступ к привычным рынкам сбыта. Российский рынок оказался отрезан от остального мира, что привело к массовой панике и продаже акций."
     }
   },
   {
     "model": "stocks.scenario",
-    "pk": 2,
+    "pk": 5,
+    "fields": {
+      "name": "Кризис 2014го",
+      "description": "Крым вошел в состав России. В этом году российский рынок столкнулся сразу с двумя проблемами. Во-первых, против крупных компаний ввели первые серьезные ограничения. Во-вторых, нефть - главный товар, который Россия продает другим странам - резко подешевела."
+    }
+  },
+  {
+    "model": "stocks.scenario",
+    "pk": 6,
     "fields": {
       "name": "Пандемия 2020",
-      "description": "обвал акций авиакомпаний, рост IT-сектора"
+      "description": "Началась пандемия. Из-за опасного вируса почти все страны закрыли границы и объявили карантин. Люди перестали ходить в торговые центры, летать в отпуска и ездить на работу. Экономика встала на паузу."
     }
   },
   {
-    "model": "stocks.scenario",
+    "model": "stocks.scenarioimpact",
+    "pk": 1,
+    "fields": {
+      "scenario": 4,
+      "stock": 7,
+      "coefficient": "0.3200",
+      "explanation": "закрытие неба ЕС и США, санкции на лизинг и запчасти"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 2,
+    "fields": {
+      "scenario": 4,
+      "stock": 2,
+      "coefficient": "0.4500",
+      "explanation": "потеря европейского рынка и остановка газопроводов"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
     "pk": 3,
     "fields": {
-      "name": "Рост ключевой ставки",
-      "description": "падение долговых и некоторых сырьевых компаний"
+      "scenario": 4,
+      "stock": 6,
+      "coefficient": "0.6500",
+      "explanation": "сложности с международной логистикой и расчетами"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 4,
+    "fields": {
+      "scenario": 4,
+      "stock": 3,
+      "coefficient": "0.5500",
+      "explanation": "ограничение ЕС на поставки нефти и введение ценового потолка"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 5,
+    "fields": {
+      "scenario": 4,
+      "stock": 5,
+      "coefficient": "0.7200",
+      "explanation": "потеря инстранных поставщиков и рост издержек"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 6,
+    "fields": {
+      "scenario": 4,
+      "stock": 1,
+      "coefficient": "0.3800",
+      "explanation": "блокирующие санкции и отключение от SWIFT"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 7,
+    "fields": {
+      "scenario": 4,
+      "stock": 4,
+      "coefficient": "0.4200",
+      "explanation": "отделение иностранных филиалов"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 8,
+    "fields": {
+      "scenario": 5,
+      "stock": 7,
+      "coefficient": "0.4500",
+      "explanation": "обесценивание рубля и рост валютных лизинговых платежей"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 9,
+    "fields": {
+      "scenario": 5,
+      "stock": 2,
+      "coefficient": "0.7100",
+      "explanation": "снижение мировых цен на нефть и газ"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 10,
+    "fields": {
+      "scenario": 5,
+      "stock": 6,
+      "coefficient": "0.9600",
+      "explanation": "экспортная выручка в валюте компенсировала кризис"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 11,
+    "fields": {
+      "scenario": 5,
+      "stock": 3,
+      "coefficient": "0.7300",
+      "explanation": "резкое падение мировых цен на нефть"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 12,
+    "fields": {
+      "scenario": 5,
+      "stock": 5,
+      "coefficient": "0.9700",
+      "explanation": "стабильный спрос на продукты питания"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 13,
+    "fields": {
+      "scenario": 5,
+      "stock": 1,
+      "coefficient": "0.5200",
+      "explanation": "введение санкций и закрытие доступа к капиталу"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 14,
+    "fields": {
+      "scenario": 5,
+      "stock": 4,
+      "coefficient": "0.6300",
+      "explanation": "отток иностранных инвесторов на фоне геополитических рисков"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 15,
+    "fields": {
+      "scenario": 6,
+      "stock": 7,
+      "coefficient": "0.4000",
+      "explanation": "глобальные локдауны и массовая остановка авиасообщения"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 16,
+    "fields": {
+      "scenario": 6,
+      "stock": 2,
+      "coefficient": "0.6700",
+      "explanation": "падение мирового спроса на энергоресурсы из-за локдаунов"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 17,
+    "fields": {
+      "scenario": 6,
+      "stock": 6,
+      "coefficient": "0.8000",
+      "explanation": "снижение цен на промышленные металлы "
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 18,
+    "fields": {
+      "scenario": 6,
+      "stock": 3,
+      "coefficient": "0.6000",
+      "explanation": "исторический обвал мировых цен на нефть на фоне пандемии"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 19,
+    "fields": {
+      "scenario": 6,
+      "stock": 5,
+      "coefficient": "1.0900",
+      "explanation": "рост спроса из-за закупок продуктов питания населением впрок"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 20,
+    "fields": {
+      "scenario": 6,
+      "stock": 1,
+      "coefficient": "0.7400",
+      "explanation": "риск массовых невыплат по кредитам бизнесом и населением"
+    }
+  },
+  {
+    "model": "stocks.scenarioimpact",
+    "pk": 21,
+    "fields": {
+      "scenario": 6,
+      "stock": 4,
+      "coefficient": "1.3200",
+      "explanation": "взрывной рост популярности онлайн-сервисов и доставки"
     }
   }
 ]

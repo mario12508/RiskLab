@@ -1,113 +1,184 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Игра: {{ game.name }} | ИнвестТренажер{% endblock %}
+{% block title %}{{ game.name }}{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/games.css' %}">
+<style>
+  .terminal-wrapper {
+    min-height: 90vh;
+  }
+
+  .balance-card {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #0d6efd 100%);
+    color: white;
+    border-radius: 1.25rem;
+    border: none;
+  }
+
+  .stock-card {
+    transition: transform 0.2s ease;
+  }
+
+  .stock-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .price-badge {
+    font-family: var(--bs-font-monospace);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .custom-input-sm {
+    background-color: var(--bs-body-tertiary);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .portfolio-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--bs-secondary-color);
+    background-color: var(--bs-body-tertiary);
+    border: none;
+  }
+
+  .change-pill {
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="display-5 fw-bold">{{ game.name }}</h1>
-      <p class="text-muted">Игрок: {{ player.player_name }}</p>
+<div class="container terminal-wrapper py-4">
+
+  <div class="row align-items-center mb-4 g-3">
+    <div class="col-md-7">
+      <div class="d-flex align-items-center">
+        <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3">
+          <i class="bi bi-graph-up-arrow fs-4"></i>
+        </div>
+        <div>
+          <h1 class="h3 fw-bold mb-0 text-emphasis">{{ game.name }}</h1>
+          <p class="text-secondary mb-0 small">Трейдер: <span class="fw-bold">{{ player.player_name }}</span></p>
+        </div>
+      </div>
     </div>
-    <div class="text-end">
-      <div class="card bg-primary">
-        <div class="card-body py-2">
-          <small>Ваш капитал</small>
-          <h3 class="mb-0" id="player-cash">{{ player.cash|floatformat:2 }} ₽</h3>
-          <small>Общая стоимость: {{ player.total_value|floatformat:2 }} ₽</small>
+    <div class="col-md-5">
+      <div class="balance-card shadow-sm p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="small opacity-75 d-block">Свободные средства</span>
+            <h3 class="mb-0 fw-bold" id="player-cash">{{ player.cash|floatformat:2 }} ₽</h3>
+          </div>
+          <div class="text-end">
+            <span class="small opacity-75 d-block">Оценка портфеля</span>
+            <div class="fw-semibold">{{ player.total_value|floatformat:2 }} ₽</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-md-8">
-      <div class="card shadow-sm mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Доступные акции</h5>
-        </div>
-        <div class="card-body">
-          <div class="row g-3">
-            {% for stock in stocks %}
-            <div class="col-md-6">
-              <div class="card h-100">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                      <h6 class="mb-0">{{ stock.name }}</h6>
-                      <small class="text-muted">{{ stock.ticker }}</small>
-                    </div>
-                    <span class="badge bg-info">{{ stock.get_sector_display }}</span>
-                  </div>
-                  <div class="mt-2">
-                    <div class="d-flex justify-content-between">
-                      <span>Цена:</span>
-                      <strong class="stock-price" data-ticker="{{ stock.ticker }}">{{ stock.last_price|floatformat:2 }} ₽</strong>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                      <span>Изменение:</span>
-                      <span class="{% if stock.change_percent > 0 %}text-success{% else %}text-danger{% endif %}">
-                        {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
-                      </span>
-                    </div>
-                  </div>
-                  <div class="mt-3">
-                    <div class="input-group input-group-sm">
-                      <input type="number" class="form-control quantity-input" data-ticker="{{ stock.ticker }}"
-                             placeholder="Кол-во" min="1">
-                      <button class="btn btn-success btn-sm buy-btn" data-ticker="{{ stock.ticker }}">Купить</button>
-                      <button class="btn btn-danger btn-sm sell-btn" data-ticker="{{ stock.ticker }}">Продать</button>
-                    </div>
-                  </div>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-emphasis">Котировки акций</h5>
+        <hr class="flex-grow-1 ms-3 opacity-10">
+      </div>
+
+      <div class="row g-3">
+        {% for stock in stocks %}
+        <div class="col-md-6 col-xl-4">
+          <div class="game-card stock-card h-100 shadow-sm">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h6 class="fw-bold mb-0">{{ stock.ticker }}</h6>
+                  <small class="text-muted d-block text-truncate" style="max-width: 120px;">{{ stock.name }}</small>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary small">{{ stock.get_sector_display }}</span>
+              </div>
+
+              <div class="my-3">
+                <div class="price-badge text-emphasis" data-ticker="{{ stock.ticker }}">
+                  {{ stock.last_price|floatformat:2 }} ₽
+                </div>
+                <div class="mt-1">
+                  <span class="change-pill {% if stock.change_percent >= 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}">
+                    {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
+                  </span>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <div class="input-group input-group-sm mb-2">
+                  <input type="number" class="form-control custom-input-sm quantity-input"
+                         data-ticker="{{ stock.ticker }}" placeholder="Кол-во" min="1">
+                </div>
+                <div class="d-grid gap-2 d-flex">
+                  <button class="btn btn-success btn-sm flex-grow-1 fw-bold buy-btn" data-ticker="{{ stock.ticker }}">
+                    КУПИТЬ
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm flex-grow-1 fw-bold sell-btn" data-ticker="{{ stock.ticker }}">
+                    ПРОДАТЬ
+                  </button>
                 </div>
               </div>
             </div>
-            {% endfor %}
           </div>
         </div>
+        {% endfor %}
       </div>
     </div>
 
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-header">
-          <h5 class="mb-0">Мой портфель</h5>
-        </div>
-        <div class="card-body">
-          {% if holdings %}
+    <div class="col-lg-4">
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-emphasis">Мой портфель</h5>
+        <hr class="flex-grow-1 ms-3 opacity-10">
+      </div>
+
+      <div class="game-card shadow-sm">
+        <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-sm">
+            <table class="table table-hover align-middle mb-0 portfolio-table">
               <thead>
-              <tr>
-                <th>Акция</th>
-                <th>Кол-во</th>
-                <th>Цена</th>
-                <th>Стоимость</th>
-              </tr>
+                <tr>
+                  <th class="ps-3 py-3">Актив</th>
+                  <th class="text-center">Кол-во</th>
+                  <th class="text-end pe-3">Стоимость</th>
+                </tr>
               </thead>
               <tbody id="holdings-list">
-              {% for holding in holdings %}
-              <tr data-ticker="{{ holding.stock.ticker }}">
-                <td>
-                  <strong>{{ holding.stock.ticker }}</strong><br>
-                  <small class="text-muted">{{ holding.stock.name|truncatechars:10 }}</small>
-                </td>
-                <td class="holding-qty">{{ holding.quantity }}</td>
-                <td class="holding-price">{{ holding.stock.last_price|floatformat:2 }}</td>
-                <td class="holding-value">{{ holding.current_value|floatformat:2 }}</td>
-              </tr>
-              {% endfor %}
+                {% if holdings %}
+                  {% for holding in holdings %}
+                  <tr data-ticker="{{ holding.stock.ticker }}">
+                    <td class="ps-3">
+                      <div class="fw-bold">{{ holding.stock.ticker }}</div>
+                      <div class="text-muted x-small">{{ holding.stock.last_price|floatformat:2 }}</div>
+                    </td>
+                    <td class="text-center fw-semibold">{{ holding.quantity }}</td>
+                    <td class="text-end pe-3 fw-bold">{{ holding.current_value|floatformat:0 }} ₽</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="3" class="text-center py-5 text-muted small">
+                      <i class="bi bi-inbox d-block fs-2 mb-2 opacity-25"></i>
+                      Портфель пока пуст
+                    </td>
+                  </tr>
+                {% endif %}
               </tbody>
             </table>
           </div>
-          {% else %}
-          <div class="text-center py-4">
-            <i class="bi bi-briefcase fs-1 text-muted"></i>
-            <p class="mt-2">У вас пока нет акций</p>
-            <small class="text-muted">Купите акции выше</small>
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -118,91 +189,63 @@
   const gameId = "{{ game.game_id }}";
 
   function updatePortfolio() {
-      fetch(`/game/play/${gameId}/portfolio/`)
-          .then(response => response.json())
-          .then(data => {
-              document.getElementById('player-cash').innerText = data.cash + ' ₽';
+    fetch(`/game/play/${gameId}/portfolio/`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('player-cash').innerText = data.cash + ' ₽';
+        const tbody = document.getElementById('holdings-list');
 
-              const tbody = document.getElementById('holdings-list');
-              if (data.holdings.length === 0) {
-                  tbody.innerHTML = '<tr><td colspan="4" class="text-center">У вас пока нет акций</td></tr>';
-              } else {
-                  tbody.innerHTML = '';
-                  data.holdings.forEach(h => {
-                      tbody.innerHTML += `
-                          <tr data-ticker="${h.ticker}">
-                              <td>
-                                  <strong>${h.ticker}</strong><br>
-                                  <small class="text-muted">${h.name}</small>
-                              </td>
-                              <td class="holding-qty">${h.quantity}</td>
-                              <td class="holding-price">${h.price}</td>
-                              <td class="holding-value">${h.value}</td>
-                          </tr>
-                      `;
-                  });
-              }
-          });
+        if (data.holdings.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted small"><i class="bi bi-inbox d-block fs-2 mb-2 opacity-25"></i>Портфель пока пуст</td></tr>';
+        } else {
+          tbody.innerHTML = data.holdings.map(h => `
+            <tr>
+              <td class="ps-3">
+                <div class="fw-bold">${h.ticker}</div>
+                <div class="text-muted x-small">${h.price}</div>
+              </td>
+              <td class="text-center fw-semibold">${h.quantity}</td>
+              <td class="text-end pe-3 fw-bold">${h.value} ₽</td>
+            </tr>
+          `).join('');
+        }
+      });
+  }
+
+  // Общая функция для запросов
+  function trade(ticker, quantity, action) {
+    if (!quantity || quantity < 1) {
+      alert('Укажите корректное количество');
+      return;
+    }
+
+    const url = action === 'buy' ? `/game/buy/${gameId}/` : `/game/sell/${gameId}/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: `ticker=${ticker}&quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        updatePortfolio();
+        document.querySelector(`.quantity-input[data-ticker="${ticker}"]`).value = '';
+      }
+    });
   }
 
   document.querySelectorAll('.buy-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-          const ticker = this.dataset.ticker;
-          const quantity = document.querySelector(`.quantity-input[data-ticker="${ticker}"]`).value;
-
-          if (!quantity || quantity < 1) {
-              alert('Введите количество');
-              return;
-          }
-
-          fetch(`/game/buy/${gameId}/`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  'X-CSRFToken': '{{ csrf_token }}'
-              },
-              body: `ticker=${ticker}&quantity=${quantity}`
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.error) {
-                  alert(data.error);
-              } else {
-                  updatePortfolio();
-                  document.querySelector(`.quantity-input[data-ticker="${ticker}"]`).value = '';
-              }
-          });
-      });
+    btn.addEventListener('click', () => trade(btn.dataset.ticker, document.querySelector(`.quantity-input[data-ticker="${btn.dataset.ticker}"]`).value, 'buy'));
   });
 
   document.querySelectorAll('.sell-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-          const ticker = this.dataset.ticker;
-          const quantity = document.querySelector(`.quantity-input[data-ticker="${ticker}"]`).value;
-
-          if (!quantity || quantity < 1) {
-              alert('Введите количество');
-              return;
-          }
-
-          fetch(`/game/sell/${gameId}/`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  'X-CSRFToken': '{{ csrf_token }}'
-              },
-              body: `ticker=${ticker}&quantity=${quantity}`
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.error) {
-                  alert(data.error);
-              } else {
-                  updatePortfolio();
-                  document.querySelector(`.quantity-input[data-ticker="${ticker}"]`).value = '';
-              }
-          });
-      });
+    btn.addEventListener('click', () => trade(btn.dataset.ticker, document.querySelector(`.quantity-input[data-ticker="${btn.dataset.ticker}"]`).value, 'sell'));
   });
 
   setInterval(updatePortfolio, 10000);
