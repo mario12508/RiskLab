@@ -1,10 +1,13 @@
-from django.core.management.base import BaseCommand
+__all__ = ()
+
 from apps.stocks.models import Stock
 from apps.stocks.services.moex_api import MOEXService
 
+from django.core.management.base import BaseCommand
+
 
 class Command(BaseCommand):
-    help = 'Загружает историю цен за 120 дней для всех акций'
+    help = "Загружает историю цен за 120 дней для всех акций"
 
     def handle(self, *args, **options):
         stocks = Stock.objects.all()
