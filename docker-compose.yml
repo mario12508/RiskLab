@@ -16,7 +16,7 @@ services:
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
       - ON_RENDER=False
-      - DATABASE_URL=postgresql://postgres.bnfkphlkwenvilwezedx:pnNL7rpkoe1ggf5X@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
+      - DATABASE_URL=postgresql://postgres.emwgeehighktqerghepf:pnNL7rpkoe1ggf5X@aws-0-eu-west-1.pooler.supabase.com:5432/postgres
       - AWS_STORAGE_BUCKET_NAME=risklab-media
       - AWS_ACCESS_KEY_ID=YCAJEgK6EfDF9PpNz4s_OyaPM
       - AWS_SECRET_ACCESS_KEY=YCMybhCIN5qI7zvr0TMp1qxa9ds7toBTQ0nZo272

@@ -16,7 +16,7 @@ services:
       - key: ON_RENDER
         value: "True"
       - key: DATABASE_URL
-        value: "postgresql://postgres.bnfkphlkwenvilwezedx:pnNL7rpkoe1ggf5X@aws-0-eu-west-1.pooler.supabase.com:6543/postgres"
+        value: "postgresql://neondb_owner:npg_gXJC4cKrlBO1@ep-frosty-waterfall-a4xr3fax.us-east-1.aws.neon.tech/neondb?sslmode=require"
         sync: false
       - key: AWS_STORAGE_BUCKET_NAME
         value: risklab-media
