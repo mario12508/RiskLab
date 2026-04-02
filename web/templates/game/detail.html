@@ -208,7 +208,7 @@
                     {% if player.user %}
                       <span class="badge bg-info-subtle text-info rounded-pill fw-normal">Account</span>
                     {% else %}
-                      <span class="badge bg-light text-muted border rounded-pill fw-normal">Guest</span>
+                      <span class="badge text-muted border rounded-pill fw-normal">Guest</span>
                     {% endif %}
                   </td>
                   <td class="pe-4 text-end">
@@ -239,9 +239,11 @@
 </div>
 
 <script>
-  function copyText(text) {
-    navigator.clipboard.writeText(text);
-    alert("Код скопирован!");
+  function copyLink() {
+    const linkInput = document.getElementById('invite-link');
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    document.execCommand('copy');
   }
 </script>
 {% endblock %}

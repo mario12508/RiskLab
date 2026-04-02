@@ -121,6 +121,20 @@ h1, h2 {
   gap: 0.9rem;
 }
 
+@media (max-width: 768px) {
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .step, .feature-card {
+    width: 100%;
+  }
+}
+
 .metric-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
@@ -177,8 +191,8 @@ h1, h2 {
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 
 .step {
