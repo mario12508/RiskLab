@@ -2,10 +2,10 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Аналитика портфеля | ИнвестТренажер{% endblock %}
+{% block title %}Портфель{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
+  <link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -19,12 +19,12 @@
   </div>
 
   {% if analytics_notes %}
-  <div class="alert alert-warning">
-    <div class="fw-semibold mb-1">Ограничения данных:</div>
-    {% for note in analytics_notes %}
-      <div>- {{ note }}</div>
-    {% endfor %}
-  </div>
+    <div class="alert alert-warning">
+      <div class="fw-semibold mb-1">Ограничения данных:</div>
+      {% for note in analytics_notes %}
+        <div>- {{ note }}</div>
+      {% endfor %}
+    </div>
   {% endif %}
 
   <div class="row g-3 mb-4">
@@ -210,6 +210,6 @@
 {% endblock %}
 
 {% block js %}
-{{ chart_payload|json_script:"portfolio-data" }}
-<script src="{% static 'js/portfolio.js' %}"></script>
+  {{ chart_payload|json_script:"portfolio-data" }}
+  <script src="{% static 'js/portfolio.js' %}"></script>
 {% endblock %}
