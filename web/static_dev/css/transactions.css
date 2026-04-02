@@ -1,0 +1,143 @@
+.history-wrapper {
+    min-height: 80vh;
+    padding-bottom: 4rem;
+}
+
+.history-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1.25rem;
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+    color: var(--bs-body-color);
+}
+
+.table thead th {
+    background: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1.25rem 1rem;
+    font-weight: 700;
+}
+
+.table tbody td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.asset-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.asset-name {
+    font-weight: 700;
+    color: var(--bs-emphasis-color);
+    line-height: 1.2;
+}
+
+.asset-ticker {
+    font-size: 0.8rem;
+    color: var(--bs-primary);
+    font-weight: 600;
+}
+
+.badge-type {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: inline-block;
+    text-align: center;
+    min-width: 85px;
+}
+
+[data-bs-theme="light"] .type-buy { background: #dcfce7; color: #15803d; }
+[data-bs-theme="light"] .type-sell { background: #fee2e2; color: #b91c1c; }
+
+[data-bs-theme="dark"] .type-buy { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+[data-bs-theme="dark"] .type-sell { background: rgba(248, 113, 113, 0.1); color: #f87171; }
+
+.price-val {
+    font-weight: 600;
+    color: var(--bs-emphasis-color);
+}
+
+.total-val {
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.pagination .page-link {
+    border-radius: 10px;
+    margin: 0 3px;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .table thead { display: none; }
+    .table tbody td {
+        display: block;
+        text-align: right;
+        padding: 0.75rem 1rem;
+        border: none;
+    }
+    .table tbody td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: 700;
+        color: var(--bs-secondary-color);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+    }
+    .table tbody tr {
+        display: block;
+        border-bottom: 2px solid var(--bs-border-color);
+        padding: 1rem 0;
+    }
+    .asset-info { align-items: flex-end; }
+}
+
+.nav-tabs .nav-link {
+  color: var(--bs-body-color);
+  border: none;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+}
+.nav-tabs .nav-link.active {
+  color: var(--bs-primary);
+  border-bottom: 2px solid var(--bs-primary);
+  background-color: transparent;
+}
+.nav-tabs .nav-link:hover {
+  border-color: transparent;
+  background-color: var(--bs-gray-100);
+}
+.card {
+  border-radius: 1rem;
+}
+.table th {
+  font-weight: 600;
+  border-top: none;
+}

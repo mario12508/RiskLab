@@ -1,6 +1,7 @@
 __all__ = ()
 
 from django.db import models
+from django.utils import timezone
 
 
 class Stock(models.Model):
@@ -127,7 +128,7 @@ class StockHistory(models.Model):
         verbose_name="Акция",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True,
+        default=timezone.now,
         verbose_name="Дата и время",
     )
     last_price = models.DecimalField(

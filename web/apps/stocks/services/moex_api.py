@@ -1,5 +1,6 @@
 __all__ = ()
 
+import datetime
 from decimal import Decimal
 
 from apps.stocks.models import Stock, StockHistory
@@ -170,3 +171,74 @@ class MOEXService:
             "cached_tickers": list(cls._cache.keys()),
             "ttl_seconds": cls._cache.ttl,
         }
+
+    @classmethod
+    def fetch_and_save_history(cls, ticker, days=120):
+        import datetime
+        end_date = timezone.now().date()
+        start_date = end_date - datetime.timedelta(days=days)
+
+        url = (
+            f"{cls.BASE_URL}/history/engines/stock/markets/shares/"
+            f"boards/TQBR/securities/{ticker}.json"
+            f"?from={start_date}&till={end_date}"
+        )
+
+        try:
+            response = requests.get(url, timeout=15)
+            data = response.json()
+
+            if "history" in data and data["history"]["data"]:
+                columns = data["history"]["columns"]
+                rows = data["history"]["data"]
+
+                col_map = {col: i for i, col in enumerate(columns)}
+
+                def get_val(row, *names):
+                    for name in names:
+                        idx = col_map.get(name)
+                        if idx is not None and idx < len(row):
+                            return row[idx]
+                    return None
+
+                stock = Stock.objects.get(ticker=ticker)
+                history_objects = []
+
+                for row in rows:
+                    price_val = get_val(row, 'LEGALCLOSEPRICE', 'CLOSE',
+                                        'WAPRICE')
+                    price = cls.safe_decimal(price_val)
+
+                    date_str = get_val(row, 'TRADEDATE')
+
+                    if price > 0 and date_str:
+                        dt = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                        aware_dt = timezone.make_aware(dt)
+
+                        if not StockHistory.objects.filter(stock=stock,
+                                                           created_at__date=dt.date()).exists():
+                            history_objects.append(
+                                StockHistory(
+                                    stock=stock,
+                                    last_price=price,
+                                    open_price=cls.safe_decimal(
+                                        get_val(row, 'OPEN')),
+                                    high_price=cls.safe_decimal(
+                                        get_val(row, 'HIGH')),
+                                    low_price=cls.safe_decimal(
+                                        get_val(row, 'LOW')),
+                                    volume=get_val(row, 'QUANTITY',
+                                                   'VOLUME') or 0,
+                                    value=cls.safe_decimal(
+                                        get_val(row, 'VALUE')),
+                                    created_at=aware_dt
+                                )
+                            )
+
+                if history_objects:
+                    StockHistory.objects.bulk_create(history_objects)
+                    return len(history_objects)
+            return 0
+        except Exception as e:
+            print(f"\n Ошибка загрузки истории для {ticker}: {e}")
+            return 0

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: invest-trainer
+    env: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "*"
+      - key: ON_RENDER
+        value: "True"
+      - key: DATABASE_URL
+        value: "postgresql://postgres.bnfkphlkwenvilwezedx:pnNL7rpkoe1ggf5X@aws-0-eu-west-1.pooler.supabase.com:6543/postgres"
+        sync: false
+      - key: AWS_STORAGE_BUCKET_NAME
+        value: risklab-media
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        value: YCAJEgK6EfDF9PpNz4s_OyaPM
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        value: YCMybhCIN5qI7zvr0TMp1qxa9ds7toBTQ0nZo272
+        sync: false

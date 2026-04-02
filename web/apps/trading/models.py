@@ -1,5 +1,7 @@
 __all__ = ()
 
+from decimal import Decimal
+
 from apps.stocks.models import Stock
 
 from django.conf import settings
@@ -39,7 +41,7 @@ class PersonalPortfolio(models.Model):
     def calculate_total_value(self):
         total = self.cash
         for holding in self.holdings.select_related("stock").all():
-            total += holding.stock.last_price * holding.quantity
+            total += holding.stock.last_price * Decimal(holding.quantity)
 
         return total
 

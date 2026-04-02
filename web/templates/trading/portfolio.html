@@ -1,104 +1,215 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Мой портфель | ИнвестТренажер{% endblock %}
+{% block title %}Аналитика портфеля | ИнвестТренажер{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <h1 class="mb-4">Мой инвестиционный портфель</h1>
+<div class="container py-4 portfolio-page">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <h1 class="fw-bold mb-1">Аналитика портфеля</h1>
+      <p class="text-body-secondary mb-0">Реальные данные MOEX, сравнение с IMOEX и риск-метрики</p>
+    </div>
+    <div class="small text-body-secondary">Источник рынка: MOEX ISS API</div>
+  </div>
 
-  <div class="row g-4 mb-5">
-    <div class="col-md-4">
-      <div class="card bg-primary ">
-        <div class="card-body">
-          <h6 class="card-title 50">Общая стоимость</h6>
-          <h2 class="card-title">{{ portfolio.total_value|floatformat:2 }} ₽</h2>
-        </div>
+  {% if analytics_notes %}
+  <div class="alert alert-warning">
+    <div class="fw-semibold mb-1">Ограничения данных:</div>
+    {% for note in analytics_notes %}
+      <div>- {{ note }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card sb-card h-100 p-3">
+        <div class="sb-label">Общая стоимость</div>
+        <div class="sb-value">{{ portfolio.total_value|floatformat:0|intcomma }} ₽</div>
+        <div class="small text-body-secondary mt-1">Наличные: {{ portfolio.cash|floatformat:0|intcomma }} ₽</div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card bg-success ">
-        <div class="card-body">
-          <h6 class="card-title">Доступно средств</h6>
-          <h2 class="card-title">{{ portfolio.cash|floatformat:2 }} ₽</h2>
+    <div class="col-md-3">
+      <div class="card sb-card h-100 p-3">
+        <div class="sb-label">Прибыль</div>
+        <div class="sb-value {% if total_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+          {% if total_profit >= 0 %}+{% endif %}{{ total_profit|floatformat:0|intcomma }} ₽
         </div>
+        <div class="small {% if profit_percent >= 0 %}text-success{% else %}text-danger{% endif %}">{{ profit_percent|floatformat:2 }}%</div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card {% if total_profit >= 0 %}bg-success{% else %}bg-danger{% endif %} ">
-        <div class="card-body">
-          <h6 class="card-title ">Прибыль/Убыток</h6>
-          <h2 class="card-title">
-            {% if total_profit >= 0 %}+{% endif %}{{ total_profit|floatformat:2 }} ₽
-            <small class="fs-6">({{ profit_percent|floatformat:1 }}%)</small>
-          </h2>
+    <div class="col-md-3">
+      <div class="card sb-card h-100 p-3">
+        <div class="sb-label">
+            MWR (XIRR)
+            <small class="text-lowercase fw-normal opacity-75">за {{ analysis_period_days }} дн.</small>
         </div>
+        <div class="sb-value text-primary">{% if irr_is_valid %}{{ irr|floatformat:2 }}%{% else %}N/A{% endif %}</div>
+        <div class="small text-body-secondary mt-1">TWR: {{ twr|floatformat:2 }}%</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card sb-card h-100 p-3">
+        <div class="sb-label">Дивиденды</div>
+        <div class="sb-value">{{ annual_dividend|floatformat:0|intcomma }} ₽</div>
+        <div class="small text-body-secondary mt-1">Yield: {{ dividend_yield_on_cost|floatformat:2 }}%</div>
       </div>
     </div>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-header">
-      <h5 class="mb-0">Мои активы</h5>
-    </div>
-    <div class="card-body">
-      {% if holdings %}
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-          <tr>
-            <th>Акция</th>
-            <th>Количество</th>
-            <th>Средняя цена</th>
-            <th>Текущая цена</th>
-            <th>Стоимость</th>
-            <th>Прибыль</th>
-            <th></th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for holding in holdings %}
-          <tr>
-            <td>
-              <strong>{{ holding.stock.name }}</strong><br>
-              <small class="text-muted">{{ holding.stock.ticker }}</small>
-            </td>
-            <td>{{ holding.quantity }} шт.</td>
-            <td>{{ holding.average_price|floatformat:2 }} ₽</td>
-            <td>{{ holding.stock.last_price|floatformat:2 }} ₽</td>
-            <td>{{ holding.current_value|floatformat:2 }} ₽</td>
-            <td class="{% if holding.profit_loss >= 0 %}text-success{% else %}text-danger{% endif %}">
-              {% if holding.profit_loss >= 0 %}+{% endif %}{{ holding.profit_loss|floatformat:2 }} ₽
-              <br>
-              <small>({% if holding.profit_loss_percent >= 0 %}+{% endif %}{{ holding.profit_loss_percent|floatformat:1 }}%)</small>
-            </td>
-            <td>
-              <a href="{% url 'stocks:detail' holding.stock.ticker %}" class="btn btn-sm btn-outline-primary">
-                Торговать
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="text-center py-5">
-        <i class="bi bi-briefcase fs-1 text-muted"></i>
-        <p class="mt-3">У вас пока нет акций в портфеле</p>
-        <a href="{% url 'stocks:list' %}" class="btn btn-primary">Перейти к покупке акций</a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
+  <ul class="nav nav-pills portfolio-tabs mb-4">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#overview" type="button">Обзор</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#diversification" type="button">Диверсификация</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#risk" type="button">Риск и метрики</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#holdings" type="button">Позиции</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#transactions" type="button">Все операции</button></li>
+  </ul>
 
-  <div class="mt-4">
-    <a href="{% url 'stocks:list' %}" class="btn btn-outline-primary">
-      <i class="bi bi-building"></i> Все акции
-    </a>
-    <a href="{% url 'trading:transactions' %}" class="btn btn-outline-secondary ms-2">
-      <i class="bi bi-list-ul"></i> История сделок
-    </a>
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="overview">
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="card sb-card p-4 h-100">
+            <h5 class="fw-bold mb-3">Стоимость портфеля vs IMOEX (масштаб)</h5>
+            <div class="chart-container chart-lg">
+              <canvas id="performanceChart"></canvas>
+              <div id="performanceChartEmpty" class="chart-empty d-none">Недостаточно данных для графика</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card sb-card p-4 h-100">
+            <h5 class="fw-bold mb-3">Рост за период</h5>
+            <div class="mb-3">
+              <div class="small text-body-secondary">Портфель</div>
+              <div class="fs-5 fw-bold {% if portfolio_growth_pct >= 0 %}text-success{% else %}text-danger{% endif %}">{% if portfolio_growth_pct >= 0 %}+{% endif %}{{ portfolio_growth_pct|floatformat:2 }}%</div>
+              <div class="small text-body-secondary mt-2">IMOEX</div>
+              <div class="fs-5 fw-bold {% if moex_growth_pct >= 0 %}text-success{% else %}text-danger{% endif %}">{% if moex_growth_pct >= 0 %}+{% endif %}{{ moex_growth_pct|floatformat:2 }}%</div>
+            </div>
+            <div class="chart-container chart-sm">
+              <canvas id="growthChart"></canvas>
+              <div id="growthChartEmpty" class="chart-empty d-none">Недостаточно данных</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="diversification">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div class="card sb-card p-4 h-100">
+            <h5 class="fw-bold mb-3">По секторам</h5>
+            <div class="chart-container chart-md">
+              <canvas id="sectorChart"></canvas>
+              <div id="sectorChartEmpty" class="chart-empty d-none">Нет данных по секторам</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="card sb-card p-4 h-100">
+            <h5 class="fw-bold mb-3">По позициям</h5>
+            <div class="chart-container chart-md">
+              <canvas id="positionsChart"></canvas>
+              <div id="positionsChartEmpty" class="chart-empty d-none">Нет данных по позициям</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="risk">
+      <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card sb-card p-3 h-100 text-center"><div class="sb-label">TWR</div><div class="fs-4 fw-bold">{{ twr|floatformat:2 }}%</div></div></div>
+        <div class="col-md-3"><div class="card sb-card p-3 h-100 text-center"><div class="sb-label">Volatility</div><div class="fs-4 fw-bold">{{ volatility|floatformat:2 }}%</div></div></div>
+        <div class="col-md-3"><div class="card sb-card p-3 h-100 text-center"><div class="sb-label">Sharpe</div><div class="fs-4 fw-bold">{% if sharpe_is_valid %}{{ sharpe|floatformat:2 }}{% else %}N/A{% endif %}</div></div></div>
+        <div class="col-md-3"><div class="card sb-card p-3 h-100 text-center"><div class="sb-label">Max Drawdown</div><div class="fs-4 fw-bold text-danger">{{ max_drawdown|floatformat:2 }}%</div></div></div>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="card sb-card p-4 h-100">
+            <h5 class="fw-bold mb-3">Дополнительные метрики</h5>
+            <div class="metric-line"><span>MWR (XIRR)</span><strong>{% if irr_is_valid %}{{ irr|floatformat:2 }}%{% else %}N/A{% endif %}</strong></div>
+            <div class="metric-line"><span>Beta к IMOEX</span><strong>{{ beta|floatformat:3 }}</strong></div>
+            <div class="metric-line"><span>Alpha годовая</span><strong>{% if alpha >= 0 %}+{% endif %}{{ alpha|floatformat:2 }}%</strong></div>
+            <div class="metric-line"><span>Инвестировано</span><strong>{{ total_invested|floatformat:0|intcomma }} ₽</strong></div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card sb-card p-4 h-100">
+            <h5 class="fw-bold mb-3">Дневная доходность, %</h5>
+            <div class="chart-container chart-xl">
+              <canvas id="returnsLineChart"></canvas>
+              <div id="returnsLineChartEmpty" class="chart-empty d-none">Недостаточно данных</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="holdings">
+      <div class="card sb-card p-4">
+        <div class="table-responsive">
+          <table class="table table-borderless table-modern mb-0">
+            <thead>
+              <tr><th>Тикер</th><th>Название</th><th>Сектор</th><th class="text-end">Позиция</th><th class="text-end">Ср. цена</th><th class="text-end">Текущая</th><th class="text-end">Прибыль</th></tr>
+            </thead>
+            <tbody>
+            {% for h in holdings %}
+              <tr>
+                <td><span class="badge bg-secondary bg-opacity-10 text-body border">{{ h.stock.ticker }}</span></td>
+                <td class="fw-bold">{{ h.stock.name }}</td>
+                <td>{{ h.stock.get_sector_display }}</td>
+                <td class="text-end">{{ h.current_value|floatformat:0|intcomma }} ₽<br><small class="text-body-secondary">{{ h.quantity }} шт.</small></td>
+                <td class="text-end">{{ h.average_price|floatformat:2 }} ₽</td>
+                <td class="text-end">{{ h.stock.last_price|floatformat:2 }} ₽</td>
+                <td class="text-end {% if h.profit_loss >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">{% if h.profit_loss >= 0 %}+{% endif %}{{ h.profit_loss|floatformat:0|intcomma }} ₽</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="text-center py-5 text-body-secondary">Портфель пуст</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="transactions">
+      <div class="card sb-card p-4">
+        <div class="table-responsive">
+          <table class="table table-borderless table-modern mb-0">
+            <thead>
+              <tr><th>Дата</th><th>Тикер</th><th>Операция</th><th class="text-end">Кол-во</th><th class="text-end">Цена</th><th class="text-end">Сумма</th></tr>
+            </thead>
+            <tbody>
+            {% for t in transactions %}
+              <tr>
+                <td class="text-body-secondary">{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                <td class="fw-bold">{{ t.stock.ticker }}</td>
+                <td>{% if t.type == 'buy' %}<span class="badge bg-success-subtle text-success-emphasis">Покупка</span>{% else %}<span class="badge bg-danger-subtle text-danger-emphasis">Продажа</span>{% endif %}</td>
+                <td class="text-end">{{ t.quantity }}</td>
+                <td class="text-end">{{ t.price|floatformat:2 }} ₽</td>
+                <td class="text-end fw-bold">{{ t.total|floatformat:2|intcomma }} ₽</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center py-5 text-body-secondary">История сделок пуста</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+{% endblock %}
+
+{% block js %}
+{{ chart_payload|json_script:"portfolio-data" }}
+<script src="{% static 'js/portfolio.js' %}"></script>
 {% endblock %}

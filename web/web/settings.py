@@ -2,6 +2,7 @@ __all__ = ()
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,12 +23,15 @@ SITE_URL = os.getenv("DJANGO_SITE_URL", default="http://127.0.0.1:8000")
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", default="*").split(",")
 
+ON_RENDER = load_bool("ON_RENDER", default=False)
+
 INSTALLED_APPS = [
     "apps.game.apps.GameConfig",
     "apps.users.apps.UsersConfig",
     "apps.stocks.apps.StocksConfig",
     "apps.trading.apps.TradingConfig",
     "apps.homepage.apps.HomepageConfig",
+    "django.contrib.humanize",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -66,10 +70,11 @@ TEMPLATES = [
 WSGI_APPLICATION = "web.wsgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
@@ -113,5 +118,31 @@ STATIC_ROOT = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+if ON_RENDER:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": os.getenv("AWS_STORAGE_BUCKET_NAME"),
+                "endpoint_url": "https://storage.yandexcloud.net",
+                "file_overwrite": False,
+                "default_acl": None,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    MEDIA_URL = f"https://{os.getenv('AWS_STORAGE_BUCKET_NAME')}.storage.yandexcloud.net/"
+    MEDIA_ROOT = None
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
