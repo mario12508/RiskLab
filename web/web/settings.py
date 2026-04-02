@@ -101,8 +101,8 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "users.User"
 
 LOGIN_URL = "users:login"
-LOGIN_REDIRECT_URL = "homepage:main"
-LOGOUT_REDIRECT_URL = "homepage:main"
+LOGIN_REDIRECT_URL = "homepage:home"
+LOGOUT_REDIRECT_URL = "homepage:home"
 
 LANGUAGE_CODE = "ru-ru"
 
