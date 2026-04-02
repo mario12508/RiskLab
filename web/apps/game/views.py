@@ -2,6 +2,7 @@ __all__ = ()
 
 from io import BytesIO
 
+import numpy as np
 from apps.game.models import Game, GamePlayer
 from apps.stocks.models import Scenario, Stock
 
@@ -303,67 +304,71 @@ class GameResultsView(TemplateView):
         self.game = get_object_or_404(Game, game_id=kwargs["game_id"])
         return super().dispatch(request, *args, **kwargs)
 
+    def calculate_sharpe(self, player):
+        try:
+            profit_rate = float(player.profit) / float(self.game.start_capital)
+            if profit_rate == 0:
+                return 0
+
+            trades_count = player.holdings.count()
+            volatility = 0.15 + (trades_count * 0.02)
+
+            raw_sharpe = profit_rate / volatility
+            return max(-3, min(3, round(raw_sharpe, 2)))
+        except Exception as e:
+            print(f"Error calculating sharpe: {e}")
+            return 0
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        players = self.game.players.filter(final_value__isnull=False)
 
-        stress_results = self.request.session.get("stress_test_results")
+        ranking_data = []
+        for player in players:
+            sharpe = self.calculate_sharpe(player)
+            start_cap = float(self.game.start_capital)
+            delta_p = (float(
+                player.profit) / start_cap * 100) if start_cap > 0 else 0
+            total_score = (1000 + (delta_p * 10)) + (sharpe * 100)
 
-        ranking = self.game.players.filter(final_value__isnull=False).order_by(
-            "-final_value",
-        )
+            ranking_data.append({
+                "player": player,
+                "sharpe": sharpe,
+                "delta_p": round(delta_p, 2),
+                "total_score": round(total_score),
+                "profit": player.profit
+            })
+        ranking_data.sort(key=lambda x: x["total_score"], reverse=True)
+        for i, item in enumerate(ranking_data, 1):
+            item["position"] = i
 
-        ranking_with_positions = []
-        for i, player in enumerate(ranking, 1):
-            ranking_with_positions.append(
-                {
-                    "position": i,
-                    "player": player,
-                },
-            )
-
+        stress_data = self.request.session.get("stress_test_results")
         stock_changes = []
-        if stress_results and "explanations" in stress_results:
-            for ticker, explanation in stress_results["explanations"].items():
-                try:
-                    stock = Stock.objects.get(ticker=ticker)
-                    coefficient = 1.0
-                    if (
-                        "impacts" in stress_results
-                        and ticker in stress_results["impacts"]
-                    ):
-                        coefficient = float(stress_results["impacts"][ticker])
 
-                    change_percent = round((coefficient - 1) * 100, 4)
+        if stress_data:
+            impacts = stress_data.get("impacts", {})
+            explanations = stress_data.get("explanations", {})
 
-                    stock_changes.append(
-                        {
-                            "ticker": ticker,
-                            "name": stock.name,
-                            "explanation": explanation,
-                            "change_percent": change_percent,
-                            "coefficient": coefficient,
-                        },
-                    )
-                except Stock.DoesNotExist:
-                    stock_changes.append(
-                        {
-                            "ticker": ticker,
-                            "name": ticker,
-                            "explanation": explanation,
-                            "change_percent": 0,
-                            "coefficient": 1,
-                        },
-                    )
+            stocks = Stock.objects.filter(ticker__in=impacts.keys())
 
-        context.update(
-            {
-                "game": self.game,
-                "ranking": ranking_with_positions,
-                "stress_results": stress_results,
-                "stock_changes": stock_changes,
-            },
-        )
+            for s in stocks:
+                coeff = impacts.get(s.ticker, 1.0)
+                change_percent = round((float(coeff) - 1) * 100, 1)
 
+                stock_changes.append({
+                    "ticker": s.ticker,
+                    "name": s.name,
+                    "change_percent": change_percent,
+                    "explanation": explanations.get(s.ticker,
+                                                    "Нет описания для этого актива.")
+                })
+
+        context.update({
+            "game": self.game,
+            "ranking": ranking_data,
+            "stress_results": stress_data,
+            "stock_changes": stock_changes,
+        })
         return context
 
 

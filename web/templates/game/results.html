@@ -4,181 +4,160 @@
 {% block title %}Итоги | {{ game.name }}{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/games.css' %}">
 <style>
-  .results-header {
-    background: var(--bs-body-tertiary);
-    border-radius: 1.5rem;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    border: 1px solid var(--bs-border-color);
-  }
-
-  .rank-1 { background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%); color: #856404; }
-  .dark-mode .rank-1 { background: linear-gradient(135deg, #332b00 0%, #4d4100 100%); color: #ffd966; }
-
-  .rank-badge {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-weight: 800;
-  }
-
-  .scenario-card {
-    border-left: 4px solid var(--bs-warning);
-    background-color: var(--bs-warning-bg-subtle);
-  }
-
-  .profit-indicator {
-    font-family: var(--bs-font-monospace);
-    font-weight: 700;
-  }
-
-  .stock-impact-item {
-    transition: all 0.2s ease;
-  }
-
-  .stock-impact-item:last-child {
-    border-bottom: none !important;
-  }
-
-  @media (max-width: 768px) {
-    .display-5 { font-size: 1.8rem; }
-    .table-responsive { border: none; }
-  }
+  .results-header { background: var(--bs-body-tertiary); border-radius: 1.5rem; padding: 2rem; border: 1px solid var(--bs-border-color); }
+  .rank-1 { background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%); border-left: 4px solid #ffd700 !important; }
+  .sharpe-badge { font-weight: 800; color: #0dcaf0; cursor: help; }
+  .info-trigger { cursor: help; color: var(--bs-secondary); margin-left: 4px; font-size: 0.8rem; }
+  .total-score-text { font-weight: 900; color: var(--bs-primary); cursor: help; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
-  <div class="results-header shadow-sm text-center text-md-start d-md-flex align-items-center justify-content-between">
-    <div class="mb-3 mb-md-0">
-      <span class="badge bg-primary-subtle text-primary text-uppercase mb-2 px-3">Игра завершена</span>
+  <div
+      class="results-header shadow-sm mb-4 d-md-flex align-items-center justify-content-between">
+    <div>
+      <span
+          class="badge bg-success text-uppercase mb-2 px-3">Игра завершена</span>
       <h1 class="display-5 fw-bold mb-0 text-emphasis">{{ game.name }}</h1>
     </div>
-    <div>
-      <a href="{% url 'game:list' %}" class="btn btn-outline-primary rounded-pill px-4">
-        <i class="bi bi-house-door me-2"></i> В лобби
-      </a>
+    <div class="mt-3 mt-md-0">
+      <a href="{% url 'game:list' %}"
+         class="btn btn-outline-secondary rounded-pill px-4">В лобби</a>
     </div>
   </div>
-
-  {% if stress_results %}
-  <div class="card scenario-card shadow-sm mb-4 border-0">
-    <div class="card-body d-flex align-items-center p-4">
-      <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 me-4">
-        <i class="bi bi-lightning-charge-fill fs-3"></i>
-      </div>
-      <div>
-        <h5 class="fw-bold mb-1">Событие: {{ stress_results.scenario_name }}</h5>
-        <p class="text-secondary mb-0">Рынок закрыт с учетом макроэкономических факторов сценария.</p>
-      </div>
-    </div>
-  </div>
-  {% endif %}
 
   <div class="row g-4">
     <div class="col-lg-8">
-      <div class="game-card shadow-sm border-0">
-        <div class="card-header bg-transparent border-bottom p-4">
-          <h5 class="fw-bold mb-0"><i class="bi bi-trophy me-2 text-warning"></i>Турнирная таблица</h5>
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div
+            class="card-header p-4 border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0">🏆 Таблица лидеров</h5>
+          <span class="badge bg-primary-subtle text-primary rounded-pill px-3">
+            Система «Индекс эффективности»
+          </span>
         </div>
         <div class="card-body p-0">
-          {% if ranking %}
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
+              <thead class="table">
+                <tr class="small text-uppercase text-muted">
                   <th class="ps-4">Место</th>
                   <th>Трейдер</th>
-                  <th class="text-end">Баланс</th>
-                  <th class="text-end pe-4">Результат</th>
+                  <th class="text-center">
+                    Дзен (Шарп)
+                    <i class="bi bi-question-circle info-trigger"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="top"
+                       title="Investor Zen: показывает, насколько стабильно ты торговал. Если график не прыгал как бешеный — Дзен высокий!"></i>
+                  </th>
+                  <th class="text-end">Прибыль (%)</th>
+                  <th class="text-end pe-4">
+                    Общий балл
+                    <i class="bi bi-info-circle-fill info-trigger text-primary"
+                       data-bs-toggle="tooltip"
+                       data-bs-html="true"
+                       title="<b>Формула:</b><br>1000 + (Доход% × 10) + (Дзен × 100)"></i>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {% for item in ranking %}
-                <tr class="{% if item.position == 1 %}rank-1{% endif %}">
-                  <td class="ps-4">
-                    <div class="rank-badge
-                      {% if item.position == 1 %}bg-warning text-white
-                      {% elif item.position == 2 %}bg-secondary-subtle text-secondary
-                      {% elif item.position == 3 %}bg-danger-subtle text-danger
-                      {% else %}bg-light text-muted{% endif %}">
-                      {{ item.position }}
-                    </div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-emphasis">{{ item.player.player_name }}</div>
-                    {% if item.player.user %}
-                    <span class="x-small text-primary text-uppercase fw-bold opacity-75">Pro-аккаунт</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-end fw-semibold">
-                    {{ item.player.final_value|floatformat:0 }} ₽
-                  </td>
-                  <td class="text-end pe-4">
-                    <div class="profit-indicator {% if item.player.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
-                      {% if item.player.profit >= 0 %}+{% endif %}{{ item.player.profit|floatformat:0 }}
-                    </div>
-                    <div class="x-small text-muted opacity-75">Прибыль</div>
-                  </td>
-                </tr>
-                {% endfor %}
+              {% for item in ranking %}
+              <tr class="{% if item.position == 1 %}rank-1{% endif %}">
+                <td class="ps-4">
+                  {% if item.position == 1 %}🥇{% elif item.position == 2 %}🥈{% elif item.position == 3 %}🥉{% else %}{{ item.position }}{% endif %}
+                </td>
+                <td>
+                  <div class="fw-bold">{{ item.player.player_name }}</div>
+                  <div class="x-small text-muted">Итого: {{ item.player.final_value|floatformat:0 }} ₽
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span class="sharpe-badge">{{ item.sharpe }}</span>
+                </td>
+                <td class="text-end">
+                  <div
+                      class="fw-bold {% if item.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {% if item.profit > 0 %}+{% endif %}{{ item.profit|floatformat:0 }} ₽
+                  </div>
+                  <div class="x-small text-muted">({{ item.delta_p }}%)</div>
+                </td>
+                <td class="text-end pe-4">
+                  <span
+                      class="total-score-text fs-5">{{ item.total_score }}</span>
+                </td>
+              </tr>
+              {% endfor %}
               </tbody>
             </table>
           </div>
-          {% else %}
-          <div class="text-center py-5">
-            <i class="bi bi-info-circle fs-1 text-muted opacity-25"></i>
-            <p class="mt-3 text-secondary">Участники еще не завершили сессию</p>
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
 
     <div class="col-lg-4">
-      {% if stock_changes %}
-      <div class="game-card shadow-sm border-0">
-        <div class="card-header bg-transparent border-bottom p-4">
-          <h5 class="fw-bold mb-0"><i class="bi bi-graph-down-arrow me-2 text-danger"></i>Сводка рынка</h5>
+      {% if stress_results %}
+      <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-4 bg-warning bg-opacity-10">
+          <h6 class="fw-bold text-warning-emphasis text-uppercase small mb-2">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Событие финала
+          </h6>
+          <h4 class="fw-bold mb-1">{{ stress_results.scenario_name }}</h4>
+          <p class="small text-muted mb-0">Рынок закрыт с учетом
+            макроэкономических факторов.</p>
         </div>
-        <div class="card-body p-0">
+
+        <div class="card-body p-0 border-top">
           <div class="list-group list-group-flush">
+            {% if stock_changes %}
             {% for stock in stock_changes %}
-            <div class="list-group-item p-4 stock-impact-item bg-transparent">
-              <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="list-group-item p-4 bg-transparent">
+              <div
+                  class="d-flex justify-content-between align-items-center mb-2">
                 <div>
-                  <h6 class="fw-bold mb-0 text-primary">{{ stock.ticker }}</h6>
-                  <small class="text-muted">{{ stock.name }}</small>
+                  <span class="fw-bold text-primary">{{ stock.ticker }}</span>
+                  <small class="text-muted ms-1">{{ stock.name }}</small>
                 </div>
-                <span class="badge {% if stock.change_percent > 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
-                  {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
-                </span>
+                <span
+                    class="badge {% if stock.change_percent > 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
+                                    {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
+                                </span>
               </div>
-              <p class="text-secondary small mb-0 lh-sm" style="font-size: 0.85rem;">
+              <p class="small text-secondary mb-0 lh-sm">
                 {{ stock.explanation }}
               </p>
             </div>
             {% endfor %}
+            {% else %}
+            <div class="p-4 text-center text-muted small">
+              Нет данных об изменениях активов
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
       {% endif %}
 
-      <div class="mt-4">
-        <div class="card bg-primary bg-opacity-10 border-0 rounded-4 p-4 text-center">
-          <p class="text-primary small fw-bold text-uppercase mb-3">Хотите реванш?</p>
-          <a href="{% url 'game:create' %}" class="btn btn-primary w-100 py-3 fw-bold rounded-3">
-            СОЗДАТЬ НОВУЮ ИГРУ
-          </a>
-        </div>
+      <div
+          class="card border-0 shadow-sm rounded-4 bg-primary p-4 text-center text-white">
+        <h5>Готовы к новой сделке?</h5>
+        <p class="small opacity-75">Проанализируйте свои ошибки и попробуйте
+          снова.</p>
+        <a href="{% url 'game:create' %}"
+           class="btn btn-light fw-bold w-100 rounded-pill py-2">Новая игра</a>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  })
+</script>
 {% endblock %}

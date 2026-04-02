@@ -6,6 +6,7 @@ from apps.stocks.models import Stock
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class PersonalPortfolio(models.Model):
@@ -207,7 +208,7 @@ class PersonalTransaction(models.Model):
     )
 
     created_at = models.DateTimeField(
-        auto_now_add=True,
+        default=timezone.now,
     )
 
     class Meta:

@@ -138,7 +138,7 @@ body {
     border-radius: 1.5rem !important;
     background: var(--bs-card-bg);
     position: sticky;
-    top: 2rem;
+    top: 100px;
 }
 
 .input-group-custom {

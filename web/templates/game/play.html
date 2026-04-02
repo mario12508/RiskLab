@@ -10,7 +10,6 @@
     min-height: 90vh;
   }
 
-  /* Виджет баланса: адаптивный текст */
   .balance-card {
     background: linear-gradient(135deg, var(--bs-primary) 0%, #0d6efd 100%);
     color: white;
@@ -24,7 +23,6 @@
     .balance-card .fw-semibold { font-size: 0.9rem; }
   }
 
-  /* Карточки акций */
   .stock-card {
     border-radius: 1rem;
     border: 1px solid var(--bs-border-color);
@@ -38,7 +36,6 @@
     }
   }
 
-  /* Поля ввода и кнопки */
   .quantity-input {
     text-align: center;
     font-weight: 700;
@@ -52,7 +49,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* Таблица портфеля на мобильных */
   @media (max-width: 768px) {
     .portfolio-table th { font-size: 0.65rem; }
     .portfolio-table td { font-size: 0.85rem; padding: 0.75rem 0.5rem !important; }
@@ -213,7 +209,6 @@
       const response = await fetch(`/game/play/${gameId}/portfolio/`);
       const data = await response.json();
 
-      // Обновляем кэш (текст)
       document.getElementById('player-cash').innerText = Math.round(data.cash).toLocaleString() + ' ₽';
 
       const tbody = document.getElementById('holdings-list');
@@ -244,7 +239,6 @@
     }
   }
 
-  // Универсальная функция торговли
   async function trade(ticker, quantity, action, buttonElement) {
     if (!quantity || quantity < 1) {
       alert('Укажите количество');
@@ -253,7 +247,6 @@
 
     const url = action === 'buy' ? `/game/buy/${gameId}/` : `/game/sell/${gameId}/`;
 
-    // Блокируем интерфейс
     const originalText = buttonElement.innerHTML;
     buttonElement.disabled = true;
     buttonElement.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
@@ -292,7 +285,6 @@
     }
   }
 
-  // Обработчики кликов
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('buy-btn') || e.target.classList.contains('sell-btn')) {
       const btn = e.target;
@@ -304,7 +296,6 @@
     }
   });
 
-  // Фоновое обновление раз в 15 секунд
   setInterval(updatePortfolio, 15000);
 </script>
 {% endblock %}

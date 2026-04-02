@@ -22,7 +22,7 @@ class Stock(models.Model):
     SECTOR_CHOICES = [
         ("oil_gas", "Нефтегаз"),
         ("retail", "Сеть магазинов"),
-        ("bank", "Банк"),
+        ("bank", "IT и финансы"),
         ("metallurgy", "Металлургия"),
         ("transport", "Транспорт"),
         ("it", "IT сектор"),

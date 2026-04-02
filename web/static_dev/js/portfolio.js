@@ -241,6 +241,93 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
         });
+
+        render("forecastChart", () => {
+            const forecastData = data.forecastChartData;
+            if (!forecastData) return null;
+
+            const horizons = forecastData.horizons;
+            const pessimistic = forecastData.pessimistic.map(v => Number(v));
+            const expected = forecastData.expected.map(v => Number(v));
+            const optimistic = forecastData.optimistic.map(v => Number(v));
+
+            if (horizons.length < 2) return null;
+
+            return {
+                type: "line",
+                data: {
+                    labels: horizons,
+                    datasets: [
+                        {
+                            label: "Пессимистичный (5-й перцентиль)",
+                            data: pessimistic,
+                            borderColor: "#6c757d",
+                            backgroundColor: "transparent",
+                            borderDash: [8, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 3,
+                            pointBackgroundColor: "#6c757d",
+                            tension: 0.1,
+                            fill: false,
+                        },
+                        {
+                            label: "Ожидаемый (медиана)",
+                            data: expected,
+                            borderColor: "#2563eb",
+                            backgroundColor: "rgba(37, 99, 235, 0.05)",
+                            borderWidth: 2.5,
+                            pointRadius: 4,
+                            pointBackgroundColor: "#2563eb",
+                            tension: 0.1,
+                            fill: false,
+                        },
+                        {
+                            label: "Оптимистичный (95-й перцентиль)",
+                            data: optimistic,
+                            borderColor: "#16a34a",
+                            backgroundColor: "transparent",
+                            borderDash: [8, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 3,
+                            pointBackgroundColor: "#16a34a",
+                            tension: 0.1,
+                            fill: false,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    let label = ctx.dataset.label || "";
+                                    let value = ctx.raw;
+                                    return `${label}: ${value.toLocaleString("ru-RU")} ₽`;
+                                }
+                            }
+                        },
+                        legend: { position: "top" }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: "Горизонт инвестирования", color: "#6c757d" },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: { display: true, text: "Стоимость портфеля (₽)", color: "#6c757d" },
+                            ticks: {
+                                callback: (val) => (val / 1000).toFixed(0) + "k ₽"
+                            },
+                            grid: { color: "rgba(128,128,128,0.1)" },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+        });
     };
 
     initAllCharts();
