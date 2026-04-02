@@ -57,4 +57,3 @@ class PersonalTransactionAdmin(admin.ModelAdmin):
         "portfolio__user__username",
         "stock__ticker",
     )
-    readonly_fields = ("created_at",)
