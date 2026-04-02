@@ -72,10 +72,6 @@ class Game(models.Model):
         return f"{self.name} ({self.creator.username})"
 
     @property
-    def invite_link(self):
-        return f"/game/play/{self.game_id}/"
-
-    @property
     def players_count(self):
         return self.players.count()
 

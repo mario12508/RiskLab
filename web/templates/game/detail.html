@@ -80,7 +80,6 @@
       </div>
       {% endif %}
 
-      <!-- Ссылка и QR-код всегда видны -->
       <div class="card shadow-sm">
         <div class="card-header bg-info text-white">
           <h5 class="mb-0"><i class="bi bi-share"></i> Пригласить игроков</h5>
@@ -153,7 +152,6 @@
               </table>
             </div>
 
-            <!-- Кнопка просмотра результатов -->
             {% if game.status == 'finished' %}
             <div class="text-center mt-3">
               <a href="{% url 'game:results' game.game_id %}" class="btn btn-primary">
