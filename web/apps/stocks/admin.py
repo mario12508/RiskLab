@@ -73,6 +73,11 @@ class ScenarioAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def import_csv(self, request):
+        """
+        Импортирует csv файл с данными влияния сценариев на акции
+        тикеры к верхнему регистру
+        используется update_or_create(обновляет связи)
+        """
         if request.method == "POST":
             csv_file = request.FILES.get("csv_file")
             scenario_name = request.POST.get("scenario_name")
