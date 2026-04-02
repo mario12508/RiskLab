@@ -120,10 +120,20 @@ class MOEXService:
         Сохраняет старые цены в историю, затем обновляет цены.
         """
 
-        stocks = list(Stock.objects.only(
-            'ticker', 'last_price', 'open_price', 'high_price', 'low_price',
-            'volume', 'value', 'change', 'change_percent', 'last_price_updated'
-        ))
+        stocks = list(
+            Stock.objects.only(
+                "ticker",
+                "last_price",
+                "open_price",
+                "high_price",
+                "low_price",
+                "volume",
+                "value",
+                "change",
+                "change_percent",
+                "last_price_updated",
+            ),
+        )
         if not stocks:
             return 0
 
@@ -146,16 +156,37 @@ class MOEXService:
                         value=stock.value,
                         change=stock.change,
                         change_percent=stock.change_percent,
-                    )
+                    ),
                 )
                 stock.last_price = quote["LAST"]
-                stock.open_price = quote.get("OPEN", stock.open_price)
-                stock.high_price = quote.get("HIGH", stock.high_price)
-                stock.low_price = quote.get("LOW", stock.low_price)
-                stock.volume = quote.get("VOLUME", stock.volume)
-                stock.value = quote.get("VALUE", stock.value)
-                stock.change = quote.get("CHANGE", stock.change)
-                stock.change_percent = quote.get("CHANGEPERCENT", stock.change_percent)
+                stock.open_price = quote.get(
+                    "OPEN",
+                    stock.open_price,
+                )
+                stock.high_price = quote.get(
+                    "HIGH",
+                    stock.high_price,
+                )
+                stock.low_price = quote.get(
+                    "LOW",
+                    stock.low_price,
+                )
+                stock.volume = quote.get(
+                    "VOLUME",
+                    stock.volume,
+                )
+                stock.value = quote.get(
+                    "VALUE",
+                    stock.value,
+                )
+                stock.change = quote.get(
+                    "CHANGE",
+                    stock.change,
+                )
+                stock.change_percent = quote.get(
+                    "CHANGEPERCENT",
+                    stock.change_percent,
+                )
                 stock.last_price_updated = timezone.now()
                 updated_stocks.append(stock)
 
@@ -166,9 +197,16 @@ class MOEXService:
             Stock.objects.bulk_update(
                 updated_stocks,
                 [
-                    'last_price', 'open_price', 'high_price', 'low_price',
-                    'volume', 'value', 'change', 'change_percent', 'last_price_updated'
-                ]
+                    "last_price",
+                    "open_price",
+                    "high_price",
+                    "low_price",
+                    "volume",
+                    "value",
+                    "change",
+                    "change_percent",
+                    "last_price_updated",
+                ],
             )
 
         return len(updated_stocks)
@@ -179,10 +217,19 @@ class MOEXService:
         Сохраняет снимок текущего состояния всех акций в историю.
         """
 
-        stocks = list(Stock.objects.only(
-            'ticker', 'last_price', 'open_price', 'high_price', 'low_price',
-            'volume', 'value', 'change', 'change_percent'
-        ))
+        stocks = list(
+            Stock.objects.only(
+                "ticker",
+                "last_price",
+                "open_price",
+                "high_price",
+                "low_price",
+                "volume",
+                "value",
+                "change",
+                "change_percent",
+            ),
+        )
 
         if not stocks:
             return 0
@@ -218,6 +265,7 @@ class MOEXService:
             idx = col_map.get(name)
             if idx is not None and idx < len(row):
                 return row[idx]
+
         return None
 
     @classmethod
@@ -250,13 +298,18 @@ class MOEXService:
                 for row in rows:
                     price_val = cls._get_value_from_row(
                         row,
+                        col_map,
                         "LEGALCLOSEPRICE",
                         "CLOSE",
                         "WAPRICE",
                     )
                     price = cls.safe_decimal(price_val)
 
-                    date_str = cls._get_value_from_row(row, "TRADEDATE")
+                    date_str = cls._get_value_from_row(
+                        row,
+                        col_map,
+                        "TRADEDATE",
+                    )
                     if price > 0 and date_str:
                         dt = datetime.datetime.strptime(date_str, "%Y-%m-%d")
                         aware_dt = timezone.make_aware(dt)
@@ -269,18 +322,39 @@ class MOEXService:
                                     stock=stock,
                                     last_price=price,
                                     open_price=cls.safe_decimal(
-                                        cls._get_value_from_row(row, "OPEN"),
+                                        cls._get_value_from_row(
+                                            row,
+                                            col_map,
+                                            "OPEN",
+                                        ),
                                     ),
                                     high_price=cls.safe_decimal(
-                                        cls._get_value_from_row(row, "HIGH"),
+                                        cls._get_value_from_row(
+                                            row,
+                                            col_map,
+                                            "HIGH",
+                                        ),
                                     ),
                                     low_price=cls.safe_decimal(
-                                        cls._get_value_from_row(row, "LOW"),
+                                        cls._get_value_from_row(
+                                            row,
+                                            col_map,
+                                            "LOW",
+                                        ),
                                     ),
-                                    volume=cls._get_value_from_row(row, "QUANTITY", "VOLUME")
+                                    volume=cls._get_value_from_row(
+                                        row,
+                                        col_map,
+                                        "QUANTITY",
+                                        "VOLUME",
+                                    )
                                     or 0,
                                     value=cls.safe_decimal(
-                                        cls._get_value_from_row(row, "VALUE"),
+                                        cls._get_value_from_row(
+                                            row,
+                                            col_map,
+                                            "VALUE",
+                                        ),
                                     ),
                                     created_at=aware_dt,
                                 ),
