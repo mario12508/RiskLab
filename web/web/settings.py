@@ -131,7 +131,7 @@ if ON_RENDER:
             },
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
     MEDIA_URL = f"https://{os.getenv('AWS_STORAGE_BUCKET_NAME')}.storage.yandexcloud.net/"
