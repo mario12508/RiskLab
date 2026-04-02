@@ -78,7 +78,7 @@ class GameJoinView(TemplateView):
         if request.user.is_authenticated:
             existing_player = GamePlayer.objects.filter(
                 game=self.game,
-                user=request.user
+                user=request.user,
             ).first()
 
             if existing_player:
@@ -90,7 +90,7 @@ class GameJoinView(TemplateView):
                 cash=self.game.start_capital,
                 total_value=self.game.start_capital,
                 user=request.user,
-                is_guest=False
+                is_guest=False,
             )
             return redirect("game:play", game_id=self.game.game_id)
 
