@@ -1,58 +1,130 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Результаты {{ game.name }}{% endblock %}
+{% block title %}Итоги | {{ game.name }}{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/games.css' %}">
+<style>
+  .results-header {
+    background: var(--bs-body-tertiary);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--bs-border-color);
+  }
+
+  .rank-1 { background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%); color: #856404; }
+  .dark-mode .rank-1 { background: linear-gradient(135deg, #332b00 0%, #4d4100 100%); color: #ffd966; }
+
+  .rank-badge {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 800;
+  }
+
+  .scenario-card {
+    border-left: 4px solid var(--bs-warning);
+    background-color: var(--bs-warning-bg-subtle);
+  }
+
+  .profit-indicator {
+    font-family: var(--bs-font-monospace);
+    font-weight: 700;
+  }
+
+  .stock-impact-item {
+    transition: all 0.2s ease;
+  }
+
+  .stock-impact-item:last-child {
+    border-bottom: none !important;
+  }
+
+  @media (max-width: 768px) {
+    .display-5 { font-size: 1.8rem; }
+    .table-responsive { border: none; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-4">
-  <h1 class="display-5 fw-bold mb-4">Результаты игры: {{ game.name }}</h1>
-  
+
+  <div class="results-header shadow-sm text-center text-md-start d-md-flex align-items-center justify-content-between">
+    <div class="mb-3 mb-md-0">
+      <span class="badge bg-primary-subtle text-primary text-uppercase mb-2 px-3">Игра завершена</span>
+      <h1 class="display-5 fw-bold mb-0 text-emphasis">{{ game.name }}</h1>
+    </div>
+    <div>
+      <a href="{% url 'game:list' %}" class="btn btn-outline-primary rounded-pill px-4">
+        <i class="bi bi-house-door me-2"></i> В лобби
+      </a>
+    </div>
+  </div>
+
   {% if stress_results %}
-  <div class="alert alert-info mb-4">
-    <h5><i class="bi bi-flask"></i> Применен сценарий: {{ stress_results.scenario_name }}</h5>
+  <div class="card scenario-card shadow-sm mb-4 border-0">
+    <div class="card-body d-flex align-items-center p-4">
+      <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 me-4">
+        <i class="bi bi-lightning-charge-fill fs-3"></i>
+      </div>
+      <div>
+        <h5 class="fw-bold mb-1">Событие: {{ stress_results.scenario_name }}</h5>
+        <p class="text-secondary mb-0">Рынок закрыт с учетом макроэкономических факторов сценария.</p>
+      </div>
+    </div>
   </div>
   {% endif %}
-  
-  <div class="row">
-    <div class="col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">Итоговый рейтинг</h5>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="game-card shadow-sm border-0">
+        <div class="card-header bg-transparent border-bottom p-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-trophy me-2 text-warning"></i>Турнирная таблица</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
           {% if ranking %}
           <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
                 <tr>
-                  <th>Место</th>
-                  <th>Игрок</th>
-                  <th>Итоговая стоимость</th>
-                  <th>Прибыль</th>
-                </thead>
+                  <th class="ps-4">Место</th>
+                  <th>Трейдер</th>
+                  <th class="text-end">Баланс</th>
+                  <th class="text-end pe-4">Результат</th>
+                </tr>
+              </thead>
               <tbody>
                 {% for item in ranking %}
-                <tr>
-                  <td>
-                    {% if item.position == 1 %}
-                      🥇 1
-                    {% elif item.position == 2 %}
-                      🥈 2
-                    {% elif item.position == 3 %}
-                      🥉 3
-                    {% else %}
+                <tr class="{% if item.position == 1 %}rank-1{% endif %}">
+                  <td class="ps-4">
+                    <div class="rank-badge
+                      {% if item.position == 1 %}bg-warning text-white
+                      {% elif item.position == 2 %}bg-secondary-subtle text-secondary
+                      {% elif item.position == 3 %}bg-danger-subtle text-danger
+                      {% else %}bg-light text-muted{% endif %}">
                       {{ item.position }}
-                    {% endif %}
+                    </div>
                   </td>
                   <td>
-                    <strong>{{ item.player.player_name }}</strong>
+                    <div class="fw-bold text-emphasis">{{ item.player.player_name }}</div>
                     {% if item.player.user %}
-                    <span class="badge bg-info ms-1">авторизован</span>
+                    <span class="x-small text-primary text-uppercase fw-bold opacity-75">Pro-аккаунт</span>
                     {% endif %}
                   </td>
-                  <td class="fw-bold">{{ item.player.final_value|floatformat:2 }} ₽</td>
-                  <td class="{% if item.player.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
-                    {% if item.player.profit >= 0 %}+{% endif %}{{ item.player.profit|floatformat:2 }} ₽
+                  <td class="text-end fw-semibold">
+                    {{ item.player.final_value|floatformat:0 }} ₽
+                  </td>
+                  <td class="text-end pe-4">
+                    <div class="profit-indicator {% if item.player.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                      {% if item.player.profit >= 0 %}+{% endif %}{{ item.player.profit|floatformat:0 }}
+                    </div>
+                    <div class="x-small text-muted opacity-75">Прибыль</div>
                   </td>
                 </tr>
                 {% endfor %}
@@ -61,42 +133,48 @@
           </div>
           {% else %}
           <div class="text-center py-5">
-            <i class="bi bi-trophy fs-1 text-muted"></i>
-            <p class="mt-3">Нет результатов</p>
+            <i class="bi bi-info-circle fs-1 text-muted opacity-25"></i>
+            <p class="mt-3 text-secondary">Участники еще не завершили сессию</p>
           </div>
           {% endif %}
         </div>
       </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-lg-4">
       {% if stock_changes %}
-      <div class="card shadow-sm">
-        <div class="card-header bg-warning">
-          <h5 class="mb-0">Влияние сценария на акции</h5>
+      <div class="game-card shadow-sm border-0">
+        <div class="card-header bg-transparent border-bottom p-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-graph-down-arrow me-2 text-danger"></i>Сводка рынка</h5>
         </div>
-        <div class="card-body">
-          {% for stock in stock_changes %}
-          <div class="mb-3 pb-2 border-bottom">
-            <div class="d-flex justify-content-between align-items-center">
-              <strong>{{ stock.ticker }} - {{ stock.name }}</strong>
-              {% if stock.change_percent %}
-              <span class="badge {% if stock.change_percent > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
-              </span>
-              {% endif %}
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for stock in stock_changes %}
+            <div class="list-group-item p-4 stock-impact-item bg-transparent">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h6 class="fw-bold mb-0 text-primary">{{ stock.ticker }}</h6>
+                  <small class="text-muted">{{ stock.name }}</small>
+                </div>
+                <span class="badge {% if stock.change_percent > 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
+                  {% if stock.change_percent > 0 %}+{% endif %}{{ stock.change_percent }}%
+                </span>
+              </div>
+              <p class="text-secondary small mb-0 lh-sm" style="font-size: 0.85rem;">
+                {{ stock.explanation }}
+              </p>
             </div>
-            <p class="text-muted small mt-1 mb-0">{{ stock.explanation }}</p>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
       </div>
       {% endif %}
-      
-      <div class="card shadow-sm mt-3">
-        <div class="card-body text-center">
-          <a href="{% url 'game:list' %}" class="btn btn-primary">
-            <i class="bi bi-joystick"></i> К списку игр
+
+      <div class="mt-4">
+        <div class="card bg-primary bg-opacity-10 border-0 rounded-4 p-4 text-center">
+          <p class="text-primary small fw-bold text-uppercase mb-3">Хотите реванш?</p>
+          <a href="{% url 'game:create' %}" class="btn btn-primary w-100 py-3 fw-bold rounded-3">
+            СОЗДАТЬ НОВУЮ ИГРУ
           </a>
         </div>
       </div>

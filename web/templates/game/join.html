@@ -1,40 +1,134 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Присоединиться к игре{% endblock %}
+{% block title %}Вход в зал | {{ game.name }}{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/games.css' %}">
+<style>
+  .join-container {
+    max-width: 500px;
+  }
+
+  .field-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 700;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .custom-input {
+    background-color: var(--bs-body-tertiary);
+    border: 1px solid var(--bs-border-color);
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .custom-input:focus {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+  }
+
+  .capital-badge {
+    background: var(--bs-success-bg-subtle);
+    color: var(--bs-success);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--bs-success-border-subtle);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 500px;">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="display-5 fw-bold">Присоединиться к игре</h1>
-    <a href="{% url 'game:list' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Назад
+<div class="container py-5 join-container">
+
+  <div class="mb-4">
+    <a href="{% url 'game:list' %}" class="text-secondary text-decoration-none small fw-bold">
+      <i class="bi bi-chevron-left"></i> К СПИСКУ ИГР
     </a>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">{{ game.name }}</h5>
-    </div>
-    <div class="card-body">
-      <p class="text-muted mb-3">{{ game.description|default:"Нет описания" }}</p>
-      <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> Стартовый капитал: <strong>{{ game.start_capital|floatformat:0 }} ₽</strong>
+  <div class="game-card shadow-lg border-0 overflow-hidden">
+    <div class="bg-primary" style="height: 6px;"></div>
+
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <h1 class="h3 fw-bold text-emphasis mb-2">Присоединиться</h1>
+        <div class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">
+          Сессия: {{ game.name }}
+        </div>
       </div>
 
-      <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="player_name" class="form-label fw-bold">Ваше имя</label>
-          <input type="text" class="form-control" id="player_name" name="player_name" required
-                 placeholder="Введите имя для игры" maxlength="100">
-          <div class="form-text">Как вас будут видеть другие игроки</div>
+      <p class="text-secondary text-center small mb-4">
+        {{ game.description|default:"Вас пригласили принять участие в торговой сессии. Введите свое имя, чтобы начать." }}
+      </p>
+
+      <div class="capital-badge mb-4">
+        <div class="text-center">
+          <span class="d-block small text-uppercase fw-bold opacity-75">Стартовый баланс</span>
+          <span class="fs-4 fw-bold">{{ game.start_capital|floatformat:0 }} ₽</span>
         </div>
-        <button type="submit" class="btn btn-success w-100">
-          <i class="bi bi-play-fill"></i> Присоединиться
+      </div>
+
+      <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label for="player_name" class="field-label">
+            <i class="bi bi-person-badge me-2 text-primary"></i> Имя в игре
+          </label>
+          <input type="text"
+                 class="form-control custom-input fw-semibold"
+                 id="player_name"
+                 name="player_name"
+                 required
+                 placeholder="Например: Трейдер_77"
+                 maxlength="100"
+                 value="{{ request.user.username|default:'' }}">
+          <div class="form-text mt-2">
+            Под этим именем вас будут видеть в таблице лидеров
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm d-flex align-items-center justify-content-center">
+          <i class="bi bi-door-open-fill me-2 fs-5"></i>
+          ВОЙТИ В ИГРУ
         </button>
       </form>
     </div>
   </div>
+
+  <div class="text-center mt-4">
+    <p class="text-muted x-small text-uppercase fw-bold opacity-50" style="letter-spacing: 1px;">
+      {{ game.game_id|slice:":8" }}
+    </p>
+  </div>
+
 </div>
+
+<script>
+  // Валидация форм
+  (function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
+  })()
+</script>
 {% endblock %}
