@@ -2,7 +2,6 @@ __all__ = ()
 
 from io import BytesIO
 
-import numpy as np
 from apps.game.models import Game, GamePlayer
 from apps.stocks.models import Scenario, Stock
 
@@ -315,8 +314,7 @@ class GameResultsView(TemplateView):
 
             raw_sharpe = profit_rate / volatility
             return max(-3, min(3, round(raw_sharpe, 2)))
-        except Exception as e:
-            print(f"Error calculating sharpe: {e}")
+        except Exception:
             return 0
 
     def get_context_data(self, **kwargs):
@@ -327,18 +325,28 @@ class GameResultsView(TemplateView):
         for player in players:
             sharpe = self.calculate_sharpe(player)
             start_cap = float(self.game.start_capital)
-            delta_p = (float(
-                player.profit) / start_cap * 100) if start_cap > 0 else 0
+            delta_p = (
+                (float(player.profit) / start_cap * 100)
+                if start_cap > 0
+                else 0
+            )
             total_score = (1000 + (delta_p * 10)) + (sharpe * 100)
 
-            ranking_data.append({
-                "player": player,
-                "sharpe": sharpe,
-                "delta_p": round(delta_p, 2),
-                "total_score": round(total_score),
-                "profit": player.profit
-            })
-        ranking_data.sort(key=lambda x: x["total_score"], reverse=True)
+            ranking_data.append(
+                {
+                    "player": player,
+                    "sharpe": sharpe,
+                    "delta_p": round(delta_p, 2),
+                    "total_score": round(total_score),
+                    "profit": player.profit,
+                },
+            )
+
+        ranking_data.sort(
+            key=lambda x: x["total_score"],
+            reverse=True,
+        )
+
         for i, item in enumerate(ranking_data, 1):
             item["position"] = i
 
@@ -355,20 +363,26 @@ class GameResultsView(TemplateView):
                 coeff = impacts.get(s.ticker, 1.0)
                 change_percent = round((float(coeff) - 1) * 100, 1)
 
-                stock_changes.append({
-                    "ticker": s.ticker,
-                    "name": s.name,
-                    "change_percent": change_percent,
-                    "explanation": explanations.get(s.ticker,
-                                                    "Нет описания для этого актива.")
-                })
+                stock_changes.append(
+                    {
+                        "ticker": s.ticker,
+                        "name": s.name,
+                        "change_percent": change_percent,
+                        "explanation": explanations.get(
+                            s.ticker,
+                            "Нет описания для этого актива.",
+                        ),
+                    },
+                )
 
-        context.update({
-            "game": self.game,
-            "ranking": ranking_data,
-            "stress_results": stress_data,
-            "stock_changes": stock_changes,
-        })
+        context.update(
+            {
+                "game": self.game,
+                "ranking": ranking_data,
+                "stress_results": stress_data,
+                "stock_changes": stock_changes,
+            },
+        )
         return context
 
 

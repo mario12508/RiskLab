@@ -6,13 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stocks', '0001_initial'),
+        ("stocks", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='stock',
-            name='sector',
-            field=models.CharField(choices=[('oil_gas', 'Нефтегаз'), ('retail', 'Сеть магазинов'), ('bank', 'IT и финансы'), ('metallurgy', 'Металлургия'), ('transport', 'Транспорт'), ('it', 'IT сектор')], max_length=50, verbose_name='Сектор экономики'),
+            model_name="stock",
+            name="sector",
+            field=models.CharField(
+                choices=[
+                    ("oil_gas", "Нефтегаз"),
+                    ("retail", "Сеть магазинов"),
+                    ("bank", "IT и финансы"),
+                    ("metallurgy", "Металлургия"),
+                    ("transport", "Транспорт"),
+                    ("it", "IT сектор"),
+                ],
+                max_length=50,
+                verbose_name="Сектор экономики",
+            ),
         ),
     ]
