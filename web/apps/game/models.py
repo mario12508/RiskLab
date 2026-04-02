@@ -187,13 +187,10 @@ class GamePlayer(models.Model):
         self.profit = self.total_value - self.game.start_capital
         self.save(update_fields=["final_value", "profit"])
 
-    def can_buy(self, stock, quantity):
-        return self.cash >= (stock.last_price * quantity)
-
     def buy_stock(self, stock, quantity):
         cost = stock.last_price * quantity
 
-        if not self.can_buy(stock, quantity):
+        if self.cash < cost:
             raise ValueError(
                 f"Недостаточно средств. Доступно: {self.cash:.2f} ₽",
             )
@@ -226,13 +223,6 @@ class GamePlayer(models.Model):
 
         self.update_total_value()
         return holding
-
-    def can_sell(self, stock, quantity):
-        try:
-            holding = GameHolding.objects.get(player=self, stock=stock)
-            return holding.quantity >= quantity
-        except GameHolding.DoesNotExist:
-            return False
 
     def sell_stock(self, stock, quantity):
         try:

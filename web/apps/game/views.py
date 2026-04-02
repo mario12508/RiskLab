@@ -218,11 +218,9 @@ class GameStartView(LoginRequiredMixin, View):
         )
 
         if game.status != "waiting":
-            messages.error(request, "Игра уже начата")
             return redirect("game:detail", game_id=game.game_id)
 
         if game.players.count() == 0:
-            messages.error(request, "Нет игроков для старта игры")
             return redirect("game:detail", game_id=game.game_id)
 
         game.start_game()
@@ -362,10 +360,14 @@ class GameTradeMixin:
 
     def _validate(self, request, game, quantity):
         if quantity <= 0:
-            return {"error": "Неверное количество"}
+            return {
+                "error": "Неверное количество",
+            }
 
         if game.status != "active":
-            return {"error": "Игра не активна"}
+            return {
+                "error": "Игра не активна",
+            }
 
         return None
 
@@ -377,14 +379,22 @@ class GameBuyView(View, GameTradeMixin):
         try:
             player = self._get_player(request, game)
         except GamePlayer.DoesNotExist:
-            return JsonResponse({"error": "Игрок не найден"}, status=404)
+            return JsonResponse(
+                {
+                    "error": "Игрок не найден",
+                },
+                status=404,
+            )
 
         ticker = request.POST.get("ticker")
         quantity = int(request.POST.get("quantity", 0))
 
         error = self._validate(request, game, quantity)
         if error:
-            return JsonResponse(error, status=400)
+            return JsonResponse(
+                error,
+                status=400,
+            )
 
         stock = get_object_or_404(Stock, ticker=ticker)
 
@@ -403,7 +413,12 @@ class GameBuyView(View, GameTradeMixin):
                 },
             )
         except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse(
+                {
+                    "error": str(e),
+                },
+                status=400,
+            )
 
 
 class GameSellView(View, GameTradeMixin):
@@ -413,14 +428,22 @@ class GameSellView(View, GameTradeMixin):
         try:
             player = self._get_player(request, game)
         except GamePlayer.DoesNotExist:
-            return JsonResponse({"error": "Игрок не найден"}, status=404)
+            return JsonResponse(
+                {
+                    "error": "Игрок не найден",
+                },
+                status=404,
+            )
 
         ticker = request.POST.get("ticker")
         quantity = int(request.POST.get("quantity", 0))
 
         error = self._validate(request, game, quantity)
         if error:
-            return JsonResponse(error, status=400)
+            return JsonResponse(
+                error,
+                status=400,
+            )
 
         stock = get_object_or_404(Stock, ticker=ticker)
 
@@ -440,7 +463,9 @@ class GameSellView(View, GameTradeMixin):
             )
         except ValueError as e:
             return JsonResponse(
-                {"error": str(e)},
+                {
+                    "error": str(e),
+                },
                 status=400,
             )
 
@@ -467,7 +492,12 @@ class GamePortfolioView(View):
                     player_name=player_name,
                 )
         except GamePlayer.DoesNotExist:
-            return JsonResponse({"error": "Игрок не найден"}, status=404)
+            return JsonResponse(
+                {
+                    "error": "Игрок не найден",
+                },
+                status=404,
+            )
 
         player.update_total_value()
 

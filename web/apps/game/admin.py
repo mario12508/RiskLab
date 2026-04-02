@@ -38,8 +38,16 @@ class GamePlayerAdmin(admin.ModelAdmin):
 
 @admin.register(GameHolding)
 class GameHoldingAdmin(admin.ModelAdmin):
-    list_display = ("player", "stock", "quantity", "average_price")
-    search_fields = ("player__player_name", "stock__ticker")
+    list_display = (
+        "player",
+        "stock",
+        "quantity",
+        "average_price",
+    )
+    search_fields = (
+        "player__player_name",
+        "stock__ticker",
+    )
 
 
 @admin.register(GameTransaction)
@@ -53,4 +61,7 @@ class GameTransactionAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("type",)
-    search_fields = ("player__player_name", "stock__ticker")
+    search_fields = (
+        "player__player_name",
+        "stock__ticker",
+    )
