@@ -1,9 +1,99 @@
 {% extends "base.html" %}
-
 {% load static %}
 
-{% block title %}RiskLab — инвестиционный тренажер{% endblock %}
+{% block title %}RiskLab — Инвестиционный тренажер{% endblock %}
 
 {% block content %}
-ВСЕ НОРМАЛЬНО
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+
+<div class="landing-wrapper">
+    <div class="landing-container">
+        <section class="hero">
+            <div class="hero-kicker">
+                <img src="{% static 'img/icon.svg' %}" alt="RiskLab" class="hero-icon">
+                <span>Инвестиционный тренажёр</span>
+            </div>
+
+            <h1>Учись инвестировать<br>без риска</h1>
+            <p>
+                Виртуальный портфель, реальные котировки, исторические сценарии.
+            </p>
+
+            <div class="hero-actions">
+                <a href="{% url 'users:login' %}" class="btn-main">Получить 100 000 ₽</a>
+                <a href="#features" class="btn-link">Подробнее</a>
+            </div>
+
+            <div class="hero-metrics">
+                <div class="metric-card">
+                    <div class="metric-label">Стартовый капитал</div>
+                    <div class="metric-value">100 000 ₽</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Сценарии</div>
+                    <div class="metric-value">4</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Оценка риска</div>
+                    <div class="metric-value">Sharpe</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <div class="section-title">
+                <h2>Возможности</h2>
+                <p>Коротко, понятно, без лишнего шума.</p>
+            </div>
+
+            <div class="py-5 features-grid">
+                <div class="feature-card">
+                    <div class="feature-mark"></div>
+                    <h3>Реальные котировки</h3>
+                    <p>Данные по активам Московской биржи.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-mark"></div>
+                    <h3>Стресс-тесты</h3>
+                    <p>Проверка портфеля на кризисах и шоках.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-mark"></div>
+                    <h3>Аналитика риска</h3>
+                    <p>Доходность, волатильность, Sharpe.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5 how-it-works">
+            <div class="section-title">
+                <h2>Как это работает</h2>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h4>Собери портфель</h4>
+                    <p>Выбери активы и распредели капитал.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h4>Следи за динамикой</h4>
+                    <p>Смотри, как меняется стоимость портфеля.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h4>Запусти кризис</h4>
+                    <p>Проверь стратегию на историческом сценарии.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
 {% endblock %}
