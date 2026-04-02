@@ -75,8 +75,26 @@ class GameJoinView(TemplateView):
     def post(self, request, *args, **kwargs):
         player_name = request.POST.get("player_name")
 
+        if request.user.is_authenticated:
+            existing_player = GamePlayer.objects.filter(
+                game=self.game,
+                user=request.user
+            ).first()
+
+            if existing_player:
+                return redirect("game:play", game_id=self.game.game_id)
+
+            GamePlayer.objects.create(
+                game=self.game,
+                player_name=request.user.username,
+                cash=self.game.start_capital,
+                total_value=self.game.start_capital,
+                user=request.user,
+                is_guest=False
+            )
+            return redirect("game:play", game_id=self.game.game_id)
+
         if not player_name:
-            messages.error(request, "Введите имя")
             return self.render_to_response(self.get_context_data())
 
         if GamePlayer.objects.filter(
@@ -94,9 +112,8 @@ class GameJoinView(TemplateView):
             user=request.user if request.user.is_authenticated else None,
         )
 
-        if not request.user.is_authenticated:
-            request.session["game_player_name"] = player_name
-            request.session["game_id"] = str(self.game.game_id)
+        request.session["game_player_name"] = player_name
+        request.session["game_id"] = str(self.game.game_id)
 
         return redirect("game:play", game_id=self.game.game_id)
 
