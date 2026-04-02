@@ -79,11 +79,11 @@ docker-compose up --build
 
 ###  Use case
 
-![Use case](imgs/use case.png)
+![Use case](imgs/use%20case.png)
 
 ###  Диаграмма компанентов
 
-![Диаграмма компанентов](imgs/companent diagram.png)
+![Диаграмма компанентов](imgs/companent%20diagram.png)
 
 ---
 
