@@ -94,18 +94,7 @@
             </button>
           </div>
 
-          {% if qr_code_url %}
-          <div class="mt-3">
-            <img src="{{ qr_code_url }}" alt="QR-код для присоединения"
-                 width="150" height="150" class="img-fluid border p-2 bg-white rounded">
-          </div>
-          <p class="text-muted small mt-2">Отсканируйте телефоном</p>
-          {% else %}
-          <div class="bg-light p-3 rounded">
-            <i class="bi bi-qr-code fs-1 text-muted"></i>
-            <p class="text-muted small mt-2">QR-код генерируется автоматически</p>
-          </div>
-          {% endif %}
+          <img src="{% url 'game:qr_code' game.game_id %}" alt="QR-код" width="150" height="150">
         </div>
       </div>
     </div>
@@ -123,7 +112,6 @@
                   <tr>
                     <th>Игрок</th>
                     <th>Статус</th>
-                    <th>Дата присоединения</th>
                    </thead>
                 <tbody>
                 {% for player in players %}
@@ -145,7 +133,6 @@
                       <span class="badge bg-secondary">ожидает</span>
                     {% endif %}
                    </td>
-                   <td class="text-muted small">{{ player.joined_at|date:"d.m.Y H:i" }}</td>
                  </tr>
                 {% endfor %}
                 </tbody>

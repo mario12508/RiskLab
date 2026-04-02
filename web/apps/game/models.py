@@ -1,14 +1,9 @@
 __all__ = ()
 
 import uuid
-from io import BytesIO
 
 from django.conf import settings
-from django.core.files import File
 from django.db import models
-from django.urls import reverse
-
-import qrcode
 
 
 class Game(models.Model):
@@ -54,12 +49,6 @@ class Game(models.Model):
         verbose_name="Стартовый капитал",
     )
 
-    qr_code = models.ImageField(
-        upload_to="game_qr_codes/",
-        blank=True,
-        null=True,
-        verbose_name="QR-код",
-    )
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
@@ -85,29 +74,6 @@ class Game(models.Model):
 
         for player in self.players.all():
             player.finish_game()
-
-    def generate_qr_code(self):
-        link = (
-            f"{settings.SITE_URL}{reverse('game:join', args=[self.game_id])}"
-        )
-
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(link)
-        qr.make(fit=True)
-
-        img = qr.make_image(fill_color="black", back_color="white")
-
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-
-        self.qr_code.save(f"qr_{self.game_id}.png", File(buffer), save=False)
-
-        return self.qr_code.url
 
 
 class GamePlayer(models.Model):
@@ -338,20 +304,6 @@ class GameHolding(models.Model):
     @property
     def current_value(self):
         return self.stock.last_price * self.quantity
-
-    @property
-    def profit_loss(self):
-        return (self.stock.last_price - self.average_price) * self.quantity
-
-    @property
-    def profit_loss_percent(self):
-        if self.average_price > 0:
-            return (
-                (self.stock.last_price - self.average_price)
-                / self.average_price
-            ) * 100
-
-        return 0
 
 
 class GameTransaction(models.Model):

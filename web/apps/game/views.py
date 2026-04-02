@@ -1,15 +1,22 @@
 __all__ = ()
 
+from io import BytesIO
+
 from apps.game.models import Game, GamePlayer
 from apps.stocks.models import Scenario, Stock
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
+
+import qrcode
 
 
 class GameListView(LoginRequiredMixin, ListView):
@@ -107,17 +114,40 @@ class GameDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if not self.object.qr_code:
-            self.object.generate_qr_code()
-            self.object.save()
-
-        context["qr_code_url"] = (
-            self.object.qr_code.url if self.object.qr_code else None
-        )
         context["players"] = self.object.players.all()
         context["scenarios"] = Scenario.objects.all()
 
         return context
+
+
+class GameQRCodeView(View):
+    def get(self, request, *args, **kwargs):
+        game = get_object_or_404(Game, game_id=kwargs["game_id"])
+
+        cache_key = f"qr_code_{game.game_id}"
+        qr_image = cache.get(cache_key)
+
+        if not qr_image:
+            link = f"{settings.SITE_URL}{reverse('game:join', args=[game.game_id])}"
+
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(link)
+            qr.make(fit=True)
+
+            img = qr.make_image(fill_color="black", back_color="white")
+
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            qr_image = buffer.getvalue()
+
+            cache.set(cache_key, qr_image, 3600)
+
+        return HttpResponse(qr_image, content_type="image/png")
 
 
 class GamePlayView(TemplateView):

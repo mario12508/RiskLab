@@ -59,4 +59,9 @@ urlpatterns = [
         views.GamePortfolioView.as_view(),
         name="portfolio_api",
     ),
+    path(
+        "qr/<uuid:game_id>/",
+        views.GameQRCodeView.as_view(),
+        name="qr_code",
+    ),
 ]
