@@ -6,6 +6,12 @@ import requests
 
 
 class MOEXService:
+    """
+    Сервис для работы с API Московской биржи (MOEX).
+    Предоставляет методы для получения исторических данных индекса IMOEX.
+    Используется для построения аналитики
+    """
+
     BASE_URL = (
         "https://iss.moex.com/iss/history/engines/stock/markets/index/"
         "securities/IMOEX.json"

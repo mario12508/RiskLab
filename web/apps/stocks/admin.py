@@ -78,6 +78,7 @@ class ScenarioAdmin(admin.ModelAdmin):
         тикеры к верхнему регистру
         используется update_or_create(обновляет связи)
         """
+
         if request.method == "POST":
             csv_file = request.FILES.get("csv_file")
             scenario_name = request.POST.get("scenario_name")

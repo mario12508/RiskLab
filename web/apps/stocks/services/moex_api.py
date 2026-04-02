@@ -178,6 +178,7 @@ class MOEXService:
         """
         Сохраняет снимок текущего состояния всех акций в историю.
         """
+
         stocks = list(Stock.objects.only(
             'ticker', 'last_price', 'open_price', 'high_price', 'low_price',
             'volume', 'value', 'change', 'change_percent'
@@ -213,9 +214,6 @@ class MOEXService:
 
     @classmethod
     def _get_value_from_row(cls, row, col_map, *names):
-        """
-        Вспомогательный метод ищет значение в строке по нескольким возможным именам колонок.
-        """
         for name in names:
             idx = col_map.get(name)
             if idx is not None and idx < len(row):
