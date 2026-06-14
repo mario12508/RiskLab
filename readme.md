@@ -21,12 +21,12 @@
 
 #### Для Windows:
 ```commandline
-git clone https://github.com/nto-itmo-hub/IT-liceisti/
+git clone https://github.com/mario12508/RiskLab
 ```
 
 #### Для macOS/Linux:
 ```commandline
-git clone https://github.com/nto-itmo-hub/IT-liceisti/
+git clone https://github.com/mario12508/RiskLab
 ```
 
 ### 3 Создайте .env и скопируйте его содержимое из .env.example:
