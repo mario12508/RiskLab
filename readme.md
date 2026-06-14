@@ -6,17 +6,8 @@
 
 [Ссылка на видео](https://disk.yandex.ru/i/YzzSOM9v2HdrYw/)
 
-###  Тестовые данные для входа
-| Логин | Пароль          | Роль                 |
-|-------|-----------------|----------------------|
-| admin | admin123        | администратор        |
-| Ivan  | jjsTjK52va5fz3U | обычный пользователь |
-| Misha | jjsTjK52va5fz3U | обычный пользователь |
-| Roma  | jjsTjK52va5fz3U | обычный пользователь |
-
 ## Инструкция
-Следуйте этой инструкции для настройки и запуска проекта **RiskLab**. Все команды выполняются в терминале.  
-**Важно:** Убедитесь, что у вас установлены `Python` и `pip`.
+Следуйте этой инструкции для настройки и запуска проекта **RiskLab**. Все команды выполняются в терминале.
 
 ---
 
@@ -42,13 +33,13 @@ git clone https://github.com/nto-itmo-hub/IT-liceisti/
 
 #### Для Windows:
 ```commandline
-cd IT-liceisti
+cd RiskLab
 copy .env.example .env
 ```
 
 #### Для macOS/Linux:
 ```commandline
-cd IT-liceisti
+cd RiskLab
 cp .env.example .env
 ```
 
