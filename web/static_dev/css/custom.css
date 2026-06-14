@@ -24,6 +24,40 @@ header {
   user-select: none;
 }
 
+header,
+header * {
+  font-family: var(--bs-body-font-family, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif) !important;
+
+  line-height: var(--bs-body-line-height, 1.5) !important;
+  letter-spacing: normal !important;
+}
+
+header .fs-4 {
+  font-family: var(--bs-body-font-family, system-ui, -apple-system, sans-serif) !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+}
+
+header .btn,
+header .dropdown-item,
+header span {
+  font-weight: var(--bs-body-font-weight, 400);
+}
+
+header .fw-semibold {
+  font-weight: 600 !important;
+}
+
+header .fw-medium {
+  font-weight: 500 !important;
+}
+
+header a,
+header button,
+header span {
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out !important;
+}
+
 .dropdown-toggle::after {
   vertical-align: middle;
   margin-left: 0.5em;

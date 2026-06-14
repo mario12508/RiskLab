@@ -72,12 +72,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "web.wsgi.application"
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL"),
-        conn_max_age=0,
-    ),
-}
+if ON_RENDER:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "risklab_db",
+            "USER": "postgres",
+            "PASSWORD": "postgres_password",
+            "HOST": "db",
+            "PORT": "5432",
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [

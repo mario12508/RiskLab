@@ -26,23 +26,37 @@
 
 [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-### 2 Клонируйте проект:
+### 2 Клонируйте проект и перейдите в его директорию:
 
 #### Для Windows:
-```bash
+```commandline
 git clone https://github.com/nto-itmo-hub/IT-liceisti/
 ```
 
 #### Для macOS/Linux:
-```bash
+```commandline
 git clone https://github.com/nto-itmo-hub/IT-liceisti/
+```
+
+### 3 Создайте .env и скопируйте его содержимое из .env.example:
+
+#### Для Windows:
+```commandline
+cd IT-liceisti
+copy .env.example .env
+```
+
+#### Для macOS/Linux:
+```commandline
+cd IT-liceisti
+cp .env.example .env
 ```
 
 ---
 
-### 3 Запустите проект с помощью Docker Compose:
+### 4 Запустите проект с помощью Docker Compose:
 Выполните следующую команду для сборки и запуска контейнеров:
-```bash
+```commandline
 docker-compose up --build
 ```
 
@@ -54,7 +68,7 @@ docker-compose up --build
 
 ---
 
-### 4 Откройте сайт:
+### 5 Откройте сайт:
 Перейдите по адресу:  
 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
